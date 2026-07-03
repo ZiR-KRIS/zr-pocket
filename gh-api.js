@@ -1,0 +1,60 @@
+const CONFIG_KEYS = { token:'zrp_token', owner:'zrp_owner', repo:'zrp_repo', branch:'zrp_branch' };
+
+const GH = {
+  cfg(){
+    return {
+      token: localStorage.getItem(CONFIG_KEYS.token) || '',
+      owner: localStorage.getItem(CONFIG_KEYS.owner) || 'ZiR-KRIS',
+      repo: localStorage.getItem(CONFIG_KEYS.repo) || 'zr-code',
+      branch: localStorage.getItem(CONFIG_KEYS.branch) || 'master',
+    };
+  },
+
+  configured(){ return !!this.cfg().token; },
+
+  async raw(path){
+    const {token, owner, repo, branch} = this.cfg();
+    const base = `https://api.github.com/repos/${owner}/${repo}/contents`;
+    const url = path
+      ? `${base}/${encodeURI(path)}?ref=${encodeURIComponent(branch)}`
+      : `${base}?ref=${encodeURIComponent(branch)}`;
+    const res = await fetch(url, {
+      headers:{
+        'Authorization': `Bearer ${token}`,
+        'Accept':'application/vnd.github+json'
+      }
+    });
+    if(!res.ok){
+      const err = new Error(`GitHub API ${res.status} en ${path || 'raíz'}`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.json();
+  },
+
+  // Los archivos del repo tienen tildes/ñ: decodificar el base64 como UTF-8 real, no con atob() a secas.
+  b64ToUtf8(b64){
+    const limpio = b64.replace(/\s/g,'');
+    const bin = atob(limpio);
+    const bytes = Uint8Array.from(bin, c=>c.charCodeAt(0));
+    return new TextDecoder('utf-8').decode(bytes);
+  },
+
+  async getFile(path){
+    const data = await this.raw(path);
+    if(Array.isArray(data) || !data.content) throw new Error(`${path} no es un archivo`);
+    return { content: this.b64ToUtf8(data.content), sha: data.sha };
+  },
+
+  // Para binarios (imágenes): mismo base64 que da la API, sin decodificar a texto.
+  async getFileRaw(path){
+    const data = await this.raw(path);
+    if(Array.isArray(data) || !data.content) throw new Error(`${path} no es un archivo`);
+    return { content: data.content.replace(/\s/g,''), sha: data.sha };
+  },
+
+  async listDir(path){
+    const data = await this.raw(path);
+    return Array.isArray(data) ? data : [];
+  }
+};

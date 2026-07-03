@@ -148,3 +148,41 @@ nav{
   font-family:ui-monospace,Consolas,monospace; font-size:.66rem; color:var(--faint);
   text-align:center; padding:10px 16px 4px; letter-spacing:.06em;
 }
+.icon-group{display:flex; gap:4px}
+.error-msg{color:#d97e7e; font-size:.82rem; margin-top:8px}
+/* ---------- overlays (setup / ajustes / doc) ---------- */
+.overlay{
+  position:fixed; inset:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:420px; background:var(--ink);
+  z-index:20; display:none; flex-direction:column;
+}
+.overlay.on{display:flex}
+.overlay-header{
+  padding:16px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px;
+  flex-shrink:0;
+}
+.overlay-header button{background:none; border:none; color:var(--dim); font-size:1.2rem; cursor:pointer; padding:0}
+.overlay-header button:hover{color:var(--amber)}
+.overlay-body{flex:1; overflow-y:auto; padding:16px}
+.form-row{margin-bottom:14px}
+.form-row label{
+  display:block; font-family:ui-monospace,Consolas,monospace; font-size:.7rem;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin-bottom:6px;
+}
+.form-row input{
+  width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:6px;
+  color:var(--text); padding:10px; font-size:.9rem; font-family:inherit;
+}
+.btn-primary{
+  background:var(--amber); color:#181206; border:none; border-radius:6px;
+  font-weight:700; font-size:.85rem; padding:11px 18px; cursor:pointer; width:100%; font-family:inherit;
+}
+.btn-danger{
+  background:none; border:1px solid #7a3b3b; color:#d97e7e; border-radius:6px;
+  font-size:.8rem; padding:9px 14px; cursor:pointer; font-family:inherit; margin-top:10px; width:100%;
+}
+.hint{font-size:.76rem; color:var(--faint); margin-top:6px; line-height:1.4}
+.doc-content{font-size:.86rem; line-height:1.5}
+.doc-content p{margin:0 0 10px}
+.doc-content p:last-child{margin-bottom:0}
+#doc-body img{max-width:100%; border-radius:8px}

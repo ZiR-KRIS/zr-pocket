@@ -10,7 +10,10 @@
 <body>
 <div class="phone">
   <header>
-    <button class="repo-btn" onclick="ir('repo')" title="Navegador de repo">📂</button>
+    <div class="icon-group">
+      <button class="repo-btn" onclick="abrirAjustes()" title="Ajustes">⚙</button>
+      <button class="repo-btn" onclick="abrirRepoRaiz()" title="Navegador de repo">📂</button>
+    </div>
     <div class="logo">ZR<em>·</em>POCKET</div>
     <div class="fecha" id="fecha-header">--</div>
   </header>
@@ -19,22 +22,10 @@
     <!-- ================= HOY ================= -->
     <section class="screen on" id="s-hoy">
       <div class="eyebrow">Modo actual</div>
-      <div class="card">
-        <p><strong style="color:var(--text)">[dummy] Frank aprobado, esperando 1er pago.</strong> Piloto cerrado, en montaje. KZ interino mientras tanto. Foco de fondo: salud + plata (P0–P2).</p>
-      </div>
+      <div class="card" id="modo-actual"><p>Cargando…</p></div>
 
       <div class="eyebrow">Tareas por importancia</div>
-      <div class="card" style="padding:4px 14px">
-        <div class="task"><input type="checkbox"><div class="t">Montaje del piloto Frank<small>tu territorio — material Frank + Troy cosechado</small></div></div>
-        <div class="task"><input type="checkbox"><div class="t">KZ interino: arrancar Msqd<small>mientras llega el pago de Frank</small></div></div>
-        <div class="task"><input type="checkbox"><div class="t">Tipografía de créditos Cadillac<small>lo único que falta para cerrarlo del todo</small></div></div>
-        <div class="task"><input type="checkbox"><div class="t">Pago Previred del mes<small>Fonasa — no perder la MLE</small></div></div>
-      </div>
-
-      <div class="eyebrow">Hoy en calendario</div>
-      <div class="card" style="padding:4px 14px">
-        <div class="dia"><div class="h">—</div><div style="color:var(--dim)">[dummy] se lee en vivo de Google Calendar en F2</div></div>
-      </div>
+      <div class="card" id="tareas-lista" style="padding:4px 14px"><p style="color:var(--dim)">Cargando…</p></div>
     </section>
 
     <!-- ================= BAÚL ================= -->
@@ -43,74 +34,57 @@
       <div class="captura">
         <textarea id="idea-txt" placeholder="Escribe la idea tal como salga. Sin categoría, sin compromiso — va directo a IDEAS/ del repo."></textarea>
         <button onclick="capturar()">Al baúl →</button>
-        <div class="toast" id="toast">✓ commiteada a IDEAS/ — ya es parte del sistema <em>(simulación — F1, sin escritura real)</em></div>
+        <div class="toast" id="toast">✓ capturada <em>(simulación — escritura real en F3)</em></div>
       </div>
 
       <div class="eyebrow">El baúl</div>
-      <div class="card idea">
-        <span class="chip autor">[dummy]</span>
-        <h3>Ejemplo de idea capturada</h3>
-        <p>En F2 esto lista de verdad los archivos de IDEAS/ del repo.</p>
-        <div class="meta">03 JUL 2026 · ejemplo.md</div>
-      </div>
+      <div id="baul-lista"><div class="card">Cargando…</div></div>
     </section>
 
     <!-- ================= PRODUCCIÓN ================= -->
     <section class="screen" id="s-prod">
       <div class="eyebrow">Proyectos</div>
-      <div class="card">
-        <span class="chip wait">[dummy]</span>
-        <h3>Frank Sin Patria</h3>
-        <p>En F2 esto lee la sección "Proyectos — estado vivo" de ESTADO_ACTUAL.md.</p>
-      </div>
-      <div class="card">
-        <span class="chip ok">[dummy]</span>
-        <h3>KZ — disco, 7 videos</h3>
-        <p>Placeholder — datos reales en F2.</p>
-      </div>
+      <div id="prod-lista"><div class="card">Cargando…</div></div>
 
       <div class="eyebrow">Accesos directos</div>
-      <div class="card">
-        <h3 style="color:var(--dim); font-weight:400; font-size:.85rem">Deep-links al navegador de repo (Frank, Clientes, Autor) — activos en F2.</h3>
-      </div>
+      <div class="card" id="prod-accesos" style="padding:4px 14px"></div>
     </section>
 
     <!-- ================= NEGOCIO ================= -->
     <section class="screen" id="s-negocio">
       <div class="eyebrow">Pitch</div>
       <div class="card">
-        <p class="pitch">[dummy] Acá va el one-liner de _EMPRESA/Branding/one_liner.md — se lee real en F2.</p>
-        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+        <div class="doc-content" id="neg-pitch"><p>Cargando…</p></div>
       </div>
 
       <div class="eyebrow">Servicios</div>
       <div class="card">
-        <p>[dummy] descripcion_servicios.md se renderiza acá.</p>
-        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+        <div class="doc-content" id="neg-servicios"><p>Cargando…</p></div>
+        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
       </div>
 
       <div class="eyebrow">Precios</div>
       <div class="card">
-        <p>[dummy] precios_zir_2026.md se renderiza acá.</p>
-        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+        <div class="doc-content" id="neg-precios"><p>Cargando…</p></div>
+        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
       </div>
 
       <div class="eyebrow">Bio</div>
       <details class="card">
         <summary>Bio corta</summary>
-        <p>[dummy] bio_instagram.md</p>
-        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+        <div class="doc-content" id="neg-bio-corta"><p>Cargando…</p></div>
+        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
       </details>
       <details class="card">
         <summary>Bio larga</summary>
-        <p>[dummy] bio_larga.md</p>
-        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+        <div class="doc-content" id="neg-bio-larga"><p>Cargando…</p></div>
+        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
       </details>
 
       <div class="eyebrow">Contacto</div>
       <div class="card">
-        <p>[dummy] firma_email.md</p>
-        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+        <div class="doc-content" id="neg-firma"><p>Cargando…</p></div>
+        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
       </div>
     </section>
 
@@ -126,15 +100,11 @@
     <!-- ================= NAVEGADOR DE REPO ================= -->
     <section class="screen" id="s-repo">
       <div class="eyebrow">Navegador de repo</div>
-      <div class="breadcrumb">[dummy] raíz del repo — navegación real en F2</div>
-      <div class="repo-item"><span class="ico">📁</span>_SISTEMA</div>
-      <div class="repo-item"><span class="ico">📁</span>_EMPRESA</div>
-      <div class="repo-item"><span class="ico">📁</span>AUTOR</div>
-      <div class="repo-item"><span class="ico">📁</span>CLIENTES</div>
-      <div class="repo-item"><span class="ico">📁</span>IDEAS</div>
+      <div class="breadcrumb" id="repo-breadcrumb"></div>
+      <div class="card" id="repo-list" style="padding:4px 14px"></div>
     </section>
 
-    <div class="nota-mockup">F1 · CASCARÓN DEPLOYADO · datos dummy, sin conexión al repo todavía</div>
+    <div class="nota-mockup">F2 · LECTURA · datos reales del repo, solo lectura — escritura en F3</div>
   </main>
 
   <nav>
@@ -144,9 +114,64 @@
     <button class="tab" onclick="ir('negocio',this)"><span class="ico">◆</span>Negocio</button>
     <button class="tab" onclick="ir('cal',this)"><span class="ico">▦</span>Cal</button>
   </nav>
+
+  <!-- ================= OVERLAY: setup inicial ================= -->
+  <div class="overlay" id="overlay-setup">
+    <div class="overlay-header"><strong>Conectar con tu repo</strong></div>
+    <div class="overlay-body">
+      <p class="hint">Fine-grained PAT de GitHub, scope mínimo: solo el repo <code>zr-code</code>, permiso <strong>Contents: Read &amp; Write</strong>, expiración 90 días. Vive solo en este dispositivo (localStorage), nunca en el repo.</p>
+      <div class="form-row">
+        <label>Token (PAT)</label>
+        <input type="password" id="in-token" placeholder="github_pat_...">
+      </div>
+      <div class="form-row">
+        <label>Owner</label>
+        <input type="text" id="in-owner" value="ZiR-KRIS">
+      </div>
+      <div class="form-row">
+        <label>Repo</label>
+        <input type="text" id="in-repo" value="zr-code">
+      </div>
+      <div class="form-row">
+        <label>Branch</label>
+        <input type="text" id="in-branch" value="master">
+      </div>
+      <button class="btn-primary" onclick="guardarSetup()">Guardar y conectar</button>
+      <div class="error-msg" id="setup-error"></div>
+    </div>
+  </div>
+
+  <!-- ================= OVERLAY: ajustes ================= -->
+  <div class="overlay" id="overlay-ajustes">
+    <div class="overlay-header">
+      <button onclick="cerrarOverlay('overlay-ajustes')">←</button>
+      <strong>Ajustes</strong>
+    </div>
+    <div class="overlay-body">
+      <div class="form-row">
+        <label>Token</label>
+        <div class="hint" id="token-mask"></div>
+      </div>
+      <div class="form-row"><label>Owner</label><input type="text" id="aj-owner"></div>
+      <div class="form-row"><label>Repo</label><input type="text" id="aj-repo"></div>
+      <div class="form-row"><label>Branch</label><input type="text" id="aj-branch"></div>
+      <button class="btn-primary" onclick="guardarAjustes()">Guardar cambios</button>
+      <button class="btn-danger" onclick="borrarToken()">Borrar token</button>
+    </div>
+  </div>
+
+  <!-- ================= OVERLAY: visor de documento/imagen ================= -->
+  <div class="overlay" id="overlay-doc">
+    <div class="overlay-header">
+      <button onclick="cerrarOverlay('overlay-doc')">←</button>
+      <div class="breadcrumb" id="doc-breadcrumb" style="margin:0"></div>
+    </div>
+    <div class="overlay-body" id="doc-body"></div>
+  </div>
 </div>
 
 <script src="marked.min.js"></script>
+<script src="gh-api.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
