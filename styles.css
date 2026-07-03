@@ -150,6 +150,11 @@ nav{
 }
 .icon-group{display:flex; gap:4px}
 .error-msg{color:#d97e7e; font-size:.82rem; margin-top:8px}
+#offline-banner{
+  background:rgba(217,146,78,.14); color:var(--wait);
+  font-family:ui-monospace,Consolas,monospace; font-size:.7rem;
+  padding:8px 12px; border-radius:6px; margin-bottom:12px; text-align:center;
+}
 /* ---------- overlays (setup / ajustes / doc) ---------- */
 .overlay{
   position:fixed; inset:0; left:50%; transform:translateX(-50%);

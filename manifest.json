@@ -1,0 +1,13 @@
+{
+  "name": "ZR Pocket",
+  "short_name": "ZR Pocket",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e0e13",
+  "theme_color": "#0e0e13",
+  "icons": [
+    { "src": "icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "icon-512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}

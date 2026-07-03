@@ -12,6 +12,10 @@ const GH = {
 
   configured(){ return !!this.cfg().token; },
 
+  // El service worker marca con X-From-Cache cuando no hubo red y sirvió el último dato guardado.
+  ultimaEsDeCache: false,
+  ultimaFechaCache: null,
+
   async raw(path){
     const {token, owner, repo, branch} = this.cfg();
     const base = `https://api.github.com/repos/${owner}/${repo}/contents`;
@@ -24,6 +28,8 @@ const GH = {
         'Accept':'application/vnd.github+json'
       }
     });
+    this.ultimaEsDeCache = res.headers.get('X-From-Cache') === 'true';
+    this.ultimaFechaCache = this.ultimaEsDeCache ? res.headers.get('date') : null;
     if(!res.ok){
       const err = new Error(`GitHub API ${res.status} en ${path || 'raíz'}`);
       err.status = res.status;

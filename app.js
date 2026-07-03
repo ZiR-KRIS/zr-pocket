@@ -105,6 +105,18 @@ function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// El SW marca las respuestas servidas desde caché (sin red) — reflejarlo en un aviso fijo.
+function actualizarBannerOffline(){
+  const banner = document.getElementById('offline-banner');
+  if(GH.ultimaEsDeCache){
+    const fecha = GH.ultimaFechaCache ? new Date(GH.ultimaFechaCache).toLocaleString('es-CL') : 'desconocida';
+    banner.textContent = `Sin conexión — datos de ${fecha}`;
+    banner.style.display = 'block';
+  }else{
+    banner.style.display = 'none';
+  }
+}
+
 // Muestra un párrafo largo truncado con botón que alterna "seguir leyendo" / "leer menos".
 function renderParrafoExpandible(contenedor, texto, limite = 260){
   const div = document.createElement('div');
@@ -188,6 +200,7 @@ async function cargarHoy(){
   }catch(e){
     tareasEl.innerHTML = `<p class="error-msg">Error leyendo TAREAS.md: ${e.message}</p>`;
   }
+  actualizarBannerOffline();
 }
 
 let tareasRaw = '';
@@ -230,6 +243,7 @@ async function cargarBaul(){
     cont.innerHTML = '';
     if(mdFiles.length === 0){
       cont.innerHTML = '<div class="card"><p>El baúl está vacío.</p></div>';
+      actualizarBannerOffline();
       return;
     }
     mdFiles.forEach(f => {
@@ -252,6 +266,7 @@ async function cargarBaul(){
   }catch(e){
     cont.innerHTML = `<div class="card"><p class="error-msg">Error leyendo IDEAS/: ${e.message}</p></div>`;
   }
+  actualizarBannerOffline();
 }
 
 /* ================= PROD ================= */
@@ -290,6 +305,7 @@ async function cargarProd(){
       .filter(f => f.type === 'file' && /shot_table/i.test(f.name))
       .forEach(f => accesos.appendChild(itemAcceso('→ ' + f.name, () => abrirDoc(f.path))));
   }catch(e){ /* accesos base ya quedaron listados */ }
+  actualizarBannerOffline();
 }
 
 function itemAcceso(label, onClick){
@@ -320,6 +336,7 @@ async function cargarNegocio(){
       el.innerHTML = `<p class="error-msg">Error leyendo ${path}: ${e.message}</p>`;
     }
   }
+  actualizarBannerOffline();
 }
 
 function copiarBloque(btn){
@@ -355,6 +372,7 @@ async function cargarRepoPath(path){
     cont.innerHTML = '';
     if(filtrados.length === 0){
       cont.innerHTML = '<div class="card"><p>Carpeta vacía.</p></div>';
+      actualizarBannerOffline();
       return;
     }
     filtrados.forEach(it => {
@@ -373,6 +391,7 @@ async function cargarRepoPath(path){
   }catch(e){
     cont.innerHTML = `<div class="card"><p class="error-msg">No se pudo cargar: ${e.message}</p></div>`;
   }
+  actualizarBannerOffline();
 }
 
 function renderBreadcrumbRepo(){
@@ -570,6 +589,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if(GH.configured()){
     actualizarChipPendientes();
     intentarSubirPendientes();
+  }
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
 });
 
