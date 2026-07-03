@@ -1,6 +1,10 @@
 /* ================= navegación de tabs ================= */
 const cargado = new Set();
 
+function irHome(){
+  ir('hoy', document.querySelector('nav .tab'));
+}
+
 function ir(id, btn){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
