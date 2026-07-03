@@ -5,7 +5,7 @@
 <title>ZR Pocket</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 <div class="phone">
@@ -34,7 +34,7 @@
       <div class="captura">
         <textarea id="idea-txt" placeholder="Escribe la idea tal como salga. Sin categoría, sin compromiso — va directo a IDEAS/ del repo."></textarea>
         <button onclick="capturar()">Al baúl →</button>
-        <div class="toast" id="toast">✓ capturada <em>(simulación — escritura real en F3)</em></div>
+        <div class="toast" id="toast"></div>
       </div>
 
       <div class="eyebrow">El baúl</div>
@@ -104,7 +104,7 @@
       <div class="card" id="repo-list" style="padding:4px 14px"></div>
     </section>
 
-    <div class="nota-mockup">F2 · LECTURA · datos reales del repo, solo lectura — escritura en F3</div>
+    <div class="nota-mockup">F3 · ESCRITURA · captura de ideas y tareas commitean de verdad — PWA/offline en F4</div>
   </main>
 
   <nav>
@@ -171,7 +171,7 @@
 </div>
 
 <script src="marked.min.js"></script>
-<script src="gh-api.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="gh-api.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

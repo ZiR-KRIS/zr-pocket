@@ -164,7 +164,9 @@ async function cargarHoy(){
   }
 
   try{
-    const {content} = await GH.getFile('_SISTEMA/ZR_POCKET/TAREAS.md');
+    const {content, sha} = await GH.getFile('_SISTEMA/ZR_POCKET/TAREAS.md');
+    tareasRaw = content;
+    tareasSha = sha;
     const items = parseChecklist(content);
     tareasEl.innerHTML = '';
     if(items.length === 0){
@@ -174,8 +176,8 @@ async function cargarHoy(){
       const div = document.createElement('div'); div.className = 'task';
       const n = document.createElement('div'); n.className = 'n'; n.textContent = i+1;
       const chk = document.createElement('input');
-      chk.type = 'checkbox'; chk.checked = it.done; chk.disabled = true;
-      chk.title = 'Editable desde F3';
+      chk.type = 'checkbox'; chk.checked = it.done;
+      chk.addEventListener('change', () => toggleTarea(i, it.text, chk));
       const t = document.createElement('div'); t.className = 't';
       const m = it.text.match(/^(.*?)\s*\((.+)\)\s*$/);
       if(m){ t.innerHTML = `${escapeHtml(m[1])}<small>${escapeHtml(m[2])}</small>`; }
@@ -185,6 +187,36 @@ async function cargarHoy(){
     });
   }catch(e){
     tareasEl.innerHTML = `<p class="error-msg">Error leyendo TAREAS.md: ${e.message}</p>`;
+  }
+}
+
+let tareasRaw = '';
+let tareasSha = null;
+
+async function toggleTarea(indice, texto, checkboxEl){
+  checkboxEl.disabled = true;
+  const lineas = tareasRaw.split('\n');
+  let contador = -1, lineaIdx = -1;
+  for(let i=0; i<lineas.length; i++){
+    if(/^- \[( |x|X)\]\s*.+/.test(lineas[i])){
+      contador++;
+      if(contador === indice){ lineaIdx = i; break; }
+    }
+  }
+  if(lineaIdx === -1){ checkboxEl.disabled = false; return; }
+  const estabaMarcada = /\[x\]/i.test(lineas[lineaIdx]);
+  lineas[lineaIdx] = lineas[lineaIdx].replace(/^- \[( |x|X)\]/, `- [${estabaMarcada ? ' ' : 'x'}]`);
+  const nuevoContenido = lineas.join('\n');
+  try{
+    const accion = estabaMarcada ? 'desmarcada' : 'marcada';
+    const resp = await GH.putFile('_SISTEMA/ZR_POCKET/TAREAS.md', nuevoContenido, `POCKET: tarea ${accion} — ${texto}`, tareasSha);
+    tareasRaw = nuevoContenido;
+    tareasSha = resp.content.sha;
+  }catch(e){
+    checkboxEl.checked = estabaMarcada;
+    alert(`No se pudo guardar el cambio: ${e.message}`);
+  }finally{
+    checkboxEl.disabled = false;
   }
 }
 
@@ -418,13 +450,109 @@ function resolverRutaRelativa(basePath, href){
   return pila.join('/');
 }
 
-/* ================= BAÚL: captura (simulada — escritura real en F3) ================= */
-function capturar(){
+/* ================= BAÚL: captura real (commit a IDEAS/) ================= */
+function mostrarToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3500);
+}
+
+function slugify3(texto){
+  return texto
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 3)
+    .join('-') || 'idea';
+}
+
+function fechaISO(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+}
+
+function fechaHoraLocal(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+async function capturar(){
   const t = document.getElementById('idea-txt');
-  if(!t.value.trim()) return;
-  document.getElementById('toast').style.display = 'block';
+  const texto = t.value.trim();
+  if(!texto) return;
   t.value = '';
-  setTimeout(() => document.getElementById('toast').style.display = 'none', 3500);
+
+  const primeraLinea = texto.split('\n')[0].trim();
+  const slug = slugify3(primeraLinea);
+  const nombre = `pocket_${fechaISO()}_${slug}.md`;
+  const path = `IDEAS/${nombre}`;
+  const contenido = `# ${primeraLinea}\n\n${texto}\n\n*Capturada desde ZR Pocket, ${fechaHoraLocal()}.*\n`;
+  const mensaje = `POCKET: idea capturada — ${slug}`;
+
+  mostrarToast('Subiendo…');
+  try{
+    await GH.putFile(path, contenido, mensaje);
+    mostrarToast(`✓ commiteada a IDEAS/${nombre}`);
+    cargarBaul();
+  }catch(e){
+    guardarIdeaPendiente(path, contenido, mensaje);
+    mostrarToast('Sin conexión — guardada en el dispositivo, se sube sola al volver la red');
+    actualizarChipPendientes();
+  }
+}
+
+/* ---- cola offline para ideas que no se pudieron commitear al toque ---- */
+function obtenerPendientes(){
+  try{ return JSON.parse(localStorage.getItem('zrp_pending_ideas') || '[]'); }
+  catch(e){ return []; }
+}
+
+function guardarIdeaPendiente(path, contenido, mensaje){
+  const arr = obtenerPendientes();
+  arr.push({path, contenido, mensaje});
+  localStorage.setItem('zrp_pending_ideas', JSON.stringify(arr));
+}
+
+async function intentarSubirPendientes(){
+  const arr = obtenerPendientes();
+  if(arr.length === 0){ actualizarChipPendientes(); return; }
+  const restantes = [];
+  let subieron = 0;
+  for(const item of arr){
+    try{
+      await GH.putFile(item.path, item.contenido, item.mensaje);
+      subieron++;
+    }catch(e){
+      restantes.push(item);
+    }
+  }
+  localStorage.setItem('zrp_pending_ideas', JSON.stringify(restantes));
+  actualizarChipPendientes();
+  if(subieron > 0 && document.getElementById('s-baul').classList.contains('on')) cargarBaul();
+}
+
+function actualizarChipPendientes(){
+  const n = obtenerPendientes().length;
+  let chip = document.getElementById('chip-pendientes');
+  if(n === 0){
+    if(chip) chip.remove();
+    return;
+  }
+  if(!chip){
+    chip = document.createElement('div');
+    chip.id = 'chip-pendientes';
+    chip.className = 'chip wait';
+    chip.style.display = 'block';
+    chip.style.marginBottom = '10px';
+    const captura = document.querySelector('.captura');
+    captura.insertAdjacentElement('afterend', chip);
+  }
+  chip.textContent = `${n} idea${n > 1 ? 's' : ''} pendiente${n > 1 ? 's' : ''} de subir`;
 }
 
 /* ================= header ================= */
@@ -439,4 +567,12 @@ function fechaHeader(){
 document.addEventListener('DOMContentLoaded', () => {
   fechaHeader();
   mostrarSetupSiHaceFalta();
+  if(GH.configured()){
+    actualizarChipPendientes();
+    intentarSubirPendientes();
+  }
+});
+
+window.addEventListener('online', () => {
+  if(GH.configured()) intentarSubirPendientes();
 });

@@ -56,5 +56,33 @@ const GH = {
   async listDir(path){
     const data = await this.raw(path);
     return Array.isArray(data) ? data : [];
+  },
+
+  utf8ToB64(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin);
+  },
+
+  async putFile(path, contentUtf8, message, sha){
+    const {token, owner, repo, branch} = this.cfg();
+    const body = { message, content: this.utf8ToB64(contentUtf8), branch };
+    if(sha) body.sha = sha;
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURI(path)}`, {
+      method: 'PUT',
+      headers:{
+        'Authorization': `Bearer ${token}`,
+        'Accept':'application/vnd.github+json',
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      const err = new Error(`GitHub API ${res.status} escribiendo ${path}`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.json();
   }
 };
