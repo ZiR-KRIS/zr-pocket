@@ -1,0 +1,150 @@
+:root{
+  --ink:#0e0e13; --panel:#16161d; --panel2:#1c1c25; --line:#282833;
+  --text:#ece9e1; --dim:#8f8c99; --faint:#5c5966;
+  --amber:#e3b04b; --amber-dim:#8a6c2e;
+  --ok:#71bd8c; --wait:#d9924e; --pause:#6e6b78;
+  --r:8px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#08080b; color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  display:flex; justify-content:center; min-height:100vh;
+}
+.phone{
+  width:100%; max-width:420px; background:var(--ink);
+  min-height:100vh; display:flex; flex-direction:column;
+  border-left:1px solid var(--line); border-right:1px solid var(--line);
+}
+/* ---------- header ---------- */
+header{
+  padding:18px 18px 12px; border-bottom:1px solid var(--line);
+  display:flex; align-items:baseline; justify-content:space-between;
+  position:sticky; top:0; background:var(--ink); z-index:5;
+}
+.logo{font-weight:800; letter-spacing:.06em; font-size:1.05rem}
+.logo em{color:var(--amber); font-style:normal}
+.fecha{font-family:ui-monospace,Consolas,monospace; font-size:.72rem; color:var(--dim); letter-spacing:.08em}
+/* ---------- screens ---------- */
+main{flex:1; overflow-y:auto; padding:16px 16px 90px}
+.screen{display:none}
+.screen.on{display:block; animation:in .18s ease}
+@keyframes in{from{opacity:0; transform:translateY(4px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen.on{animation:none}}
+.eyebrow{
+  font-family:ui-monospace,Consolas,monospace; font-size:.68rem;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--amber);
+  margin:22px 0 10px;
+}
+.eyebrow:first-child{margin-top:2px}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r);
+  padding:14px; margin-bottom:10px;
+}
+.card h3{margin:0 0 4px; font-size:.95rem; font-weight:700}
+.card p{margin:0; font-size:.84rem; color:var(--dim); line-height:1.45}
+.chip{
+  display:inline-block; font-family:ui-monospace,Consolas,monospace;
+  font-size:.64rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:3px 8px; border-radius:20px; margin-bottom:8px;
+}
+.chip.ok{background:rgba(113,189,140,.12); color:var(--ok)}
+.chip.wait{background:rgba(217,146,78,.14); color:var(--wait)}
+.chip.pause{background:rgba(110,107,120,.16); color:var(--pause)}
+.chip.autor{background:rgba(227,176,75,.12); color:var(--amber)}
+/* ---------- HOY: tareas ---------- */
+.task{
+  display:flex; gap:12px; align-items:flex-start;
+  padding:12px 4px; border-bottom:1px solid var(--line);
+}
+.task:last-child{border-bottom:none}
+.task .n{
+  font-family:ui-monospace,Consolas,monospace; font-size:.8rem;
+  color:var(--amber); min-width:18px; padding-top:1px;
+}
+.task .t{font-size:.88rem; line-height:1.4}
+.task .t small{display:block; color:var(--faint); font-size:.74rem; margin-top:2px}
+.task input[type="checkbox"]{margin-top:2px; accent-color:var(--amber)}
+/* ---------- BAÚL ---------- */
+.captura{
+  background:var(--panel2); border:1px dashed var(--amber-dim); border-radius:var(--r);
+  padding:14px; margin-bottom:16px;
+}
+.captura textarea{
+  width:100%; background:transparent; border:none; resize:none;
+  color:var(--text); font:inherit; font-size:.9rem; min-height:58px; outline:none;
+}
+.captura textarea::placeholder{color:var(--faint)}
+.captura button{
+  background:var(--amber); color:#181206; border:none; border-radius:6px;
+  font-weight:700; font-size:.82rem; padding:9px 16px; cursor:pointer;
+  font-family:inherit;
+}
+.captura button:focus-visible, .tab:focus-visible, .gcal:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+.toast{
+  font-family:ui-monospace,Consolas,monospace; font-size:.72rem; color:var(--ok);
+  margin-top:8px; display:none;
+}
+.idea .meta{
+  font-family:ui-monospace,Consolas,monospace; font-size:.66rem;
+  color:var(--faint); letter-spacing:.08em; margin-top:8px;
+}
+/* ---------- NEGOCIO ---------- */
+.pitch{font-size:1.05rem; font-weight:700; line-height:1.4}
+.copiar{
+  background:none; border:1px solid var(--line); color:var(--dim);
+  border-radius:6px; font-size:.7rem; font-family:ui-monospace,Consolas,monospace;
+  padding:5px 10px; cursor:pointer; margin-top:8px;
+}
+.copiar:hover{color:var(--amber); border-color:var(--amber-dim)}
+details.card summary{cursor:pointer; font-weight:700; font-size:.95rem; list-style:none}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::before{content:"▸ "; color:var(--amber)}
+details.card[open] summary::before{content:"▾ "}
+details.card p{margin-top:8px}
+/* ---------- CAL ---------- */
+.gcal{
+  display:block; text-align:center; background:var(--panel2);
+  border:1px solid var(--line); border-radius:var(--r);
+  color:var(--text); text-decoration:none; padding:16px; font-size:.9rem; font-weight:600;
+}
+.gcal span{display:block; color:var(--dim); font-weight:400; font-size:.78rem; margin-top:4px}
+.dia{display:flex; gap:12px; padding:10px 4px; border-bottom:1px solid var(--line); font-size:.86rem}
+.dia:last-child{border-bottom:none}
+.dia .h{font-family:ui-monospace,Consolas,monospace; color:var(--dim); font-size:.76rem; min-width:52px; padding-top:2px}
+/* ---------- navegador de repo ---------- */
+.repo-btn{
+  background:none; border:none; color:var(--dim); cursor:pointer;
+  font-size:1.1rem; padding:4px;
+}
+.repo-btn:hover{color:var(--amber)}
+.breadcrumb{
+  font-family:ui-monospace,Consolas,monospace; font-size:.72rem; color:var(--dim);
+  margin-bottom:12px; word-break:break-all;
+}
+.breadcrumb span{cursor:pointer; color:var(--amber)}
+.repo-item{
+  display:flex; align-items:center; gap:10px; padding:10px 4px;
+  border-bottom:1px solid var(--line); font-size:.86rem; cursor:pointer;
+}
+.repo-item:last-child{border-bottom:none}
+.repo-item .ico{font-size:1rem; min-width:18px}
+/* ---------- tab bar ---------- */
+nav{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:420px; display:flex;
+  background:rgba(14,14,19,.97); border-top:1px solid var(--line); z-index:10;
+}
+.tab{
+  flex:1; background:none; border:none; color:var(--faint); cursor:pointer;
+  padding:12px 0 14px; font-family:ui-monospace,Consolas,monospace;
+  font-size:.62rem; letter-spacing:.1em; text-transform:uppercase;
+}
+.tab .ico{display:block; font-size:1.05rem; margin-bottom:3px; font-family:system-ui}
+.tab.on{color:var(--amber)}
+.nota-mockup{
+  font-family:ui-monospace,Consolas,monospace; font-size:.66rem; color:var(--faint);
+  text-align:center; padding:10px 16px 4px; letter-spacing:.06em;
+}

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>ZR Pocket</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone">
+  <header>
+    <button class="repo-btn" onclick="ir('repo')" title="Navegador de repo">📂</button>
+    <div class="logo">ZR<em>·</em>POCKET</div>
+    <div class="fecha" id="fecha-header">--</div>
+  </header>
+
+  <main>
+    <!-- ================= HOY ================= -->
+    <section class="screen on" id="s-hoy">
+      <div class="eyebrow">Modo actual</div>
+      <div class="card">
+        <p><strong style="color:var(--text)">[dummy] Frank aprobado, esperando 1er pago.</strong> Piloto cerrado, en montaje. KZ interino mientras tanto. Foco de fondo: salud + plata (P0–P2).</p>
+      </div>
+
+      <div class="eyebrow">Tareas por importancia</div>
+      <div class="card" style="padding:4px 14px">
+        <div class="task"><input type="checkbox"><div class="t">Montaje del piloto Frank<small>tu territorio — material Frank + Troy cosechado</small></div></div>
+        <div class="task"><input type="checkbox"><div class="t">KZ interino: arrancar Msqd<small>mientras llega el pago de Frank</small></div></div>
+        <div class="task"><input type="checkbox"><div class="t">Tipografía de créditos Cadillac<small>lo único que falta para cerrarlo del todo</small></div></div>
+        <div class="task"><input type="checkbox"><div class="t">Pago Previred del mes<small>Fonasa — no perder la MLE</small></div></div>
+      </div>
+
+      <div class="eyebrow">Hoy en calendario</div>
+      <div class="card" style="padding:4px 14px">
+        <div class="dia"><div class="h">—</div><div style="color:var(--dim)">[dummy] se lee en vivo de Google Calendar en F2</div></div>
+      </div>
+    </section>
+
+    <!-- ================= BAÚL ================= -->
+    <section class="screen" id="s-baul">
+      <div class="eyebrow">Escupir idea</div>
+      <div class="captura">
+        <textarea id="idea-txt" placeholder="Escribe la idea tal como salga. Sin categoría, sin compromiso — va directo a IDEAS/ del repo."></textarea>
+        <button onclick="capturar()">Al baúl →</button>
+        <div class="toast" id="toast">✓ commiteada a IDEAS/ — ya es parte del sistema <em>(simulación — F1, sin escritura real)</em></div>
+      </div>
+
+      <div class="eyebrow">El baúl</div>
+      <div class="card idea">
+        <span class="chip autor">[dummy]</span>
+        <h3>Ejemplo de idea capturada</h3>
+        <p>En F2 esto lista de verdad los archivos de IDEAS/ del repo.</p>
+        <div class="meta">03 JUL 2026 · ejemplo.md</div>
+      </div>
+    </section>
+
+    <!-- ================= PRODUCCIÓN ================= -->
+    <section class="screen" id="s-prod">
+      <div class="eyebrow">Proyectos</div>
+      <div class="card">
+        <span class="chip wait">[dummy]</span>
+        <h3>Frank Sin Patria</h3>
+        <p>En F2 esto lee la sección "Proyectos — estado vivo" de ESTADO_ACTUAL.md.</p>
+      </div>
+      <div class="card">
+        <span class="chip ok">[dummy]</span>
+        <h3>KZ — disco, 7 videos</h3>
+        <p>Placeholder — datos reales en F2.</p>
+      </div>
+
+      <div class="eyebrow">Accesos directos</div>
+      <div class="card">
+        <h3 style="color:var(--dim); font-weight:400; font-size:.85rem">Deep-links al navegador de repo (Frank, Clientes, Autor) — activos en F2.</h3>
+      </div>
+    </section>
+
+    <!-- ================= NEGOCIO ================= -->
+    <section class="screen" id="s-negocio">
+      <div class="eyebrow">Pitch</div>
+      <div class="card">
+        <p class="pitch">[dummy] Acá va el one-liner de _EMPRESA/Branding/one_liner.md — se lee real en F2.</p>
+        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+      </div>
+
+      <div class="eyebrow">Servicios</div>
+      <div class="card">
+        <p>[dummy] descripcion_servicios.md se renderiza acá.</p>
+        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+      </div>
+
+      <div class="eyebrow">Precios</div>
+      <div class="card">
+        <p>[dummy] precios_zir_2026.md se renderiza acá.</p>
+        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+      </div>
+
+      <div class="eyebrow">Bio</div>
+      <details class="card">
+        <summary>Bio corta</summary>
+        <p>[dummy] bio_instagram.md</p>
+        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+      </details>
+      <details class="card">
+        <summary>Bio larga</summary>
+        <p>[dummy] bio_larga.md</p>
+        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+      </details>
+
+      <div class="eyebrow">Contacto</div>
+      <div class="card">
+        <p>[dummy] firma_email.md</p>
+        <button class="copiar" onclick="copiarTexto(this)">copiar</button>
+      </div>
+    </section>
+
+    <!-- ================= CAL ================= -->
+    <section class="screen" id="s-cal">
+      <div class="eyebrow">Calendario</div>
+      <a class="gcal" href="https://calendar.google.com" target="_blank" rel="noopener">
+        Abrir Google Calendar
+        <span>convive con el que ya usás — la app no lo reemplaza, solo lo muestra</span>
+      </a>
+    </section>
+
+    <!-- ================= NAVEGADOR DE REPO ================= -->
+    <section class="screen" id="s-repo">
+      <div class="eyebrow">Navegador de repo</div>
+      <div class="breadcrumb">[dummy] raíz del repo — navegación real en F2</div>
+      <div class="repo-item"><span class="ico">📁</span>_SISTEMA</div>
+      <div class="repo-item"><span class="ico">📁</span>_EMPRESA</div>
+      <div class="repo-item"><span class="ico">📁</span>AUTOR</div>
+      <div class="repo-item"><span class="ico">📁</span>CLIENTES</div>
+      <div class="repo-item"><span class="ico">📁</span>IDEAS</div>
+    </section>
+
+    <div class="nota-mockup">F1 · CASCARÓN DEPLOYADO · datos dummy, sin conexión al repo todavía</div>
+  </main>
+
+  <nav>
+    <button class="tab on" onclick="ir('hoy',this)"><span class="ico">◉</span>Hoy</button>
+    <button class="tab" onclick="ir('baul',this)"><span class="ico">✦</span>Baúl</button>
+    <button class="tab" onclick="ir('prod',this)"><span class="ico">▸</span>Prod</button>
+    <button class="tab" onclick="ir('negocio',this)"><span class="ico">◆</span>Negocio</button>
+    <button class="tab" onclick="ir('cal',this)"><span class="ico">▦</span>Cal</button>
+  </nav>
+</div>
+
+<script src="marked.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
