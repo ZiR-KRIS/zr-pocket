@@ -111,7 +111,19 @@ async function cargarHoy(){
   try{
     const {content} = await GH.getFile('ESTADO_ACTUAL.md');
     const seccion = extraerSeccion(content, '## MODO ACTUAL');
-    modoEl.innerHTML = seccion ? marked.parse(seccion) : '<p class="error-msg">No se encontró el bloque MODO ACTUAL.</p>';
+    if(!seccion){
+      modoEl.innerHTML = '<p class="error-msg">No se encontró el bloque MODO ACTUAL.</p>';
+    }else{
+      const parrafos = seccion.split(/\n\s*\n/).filter(p => p.trim());
+      let html = marked.parse(parrafos[0] || '');
+      if(parrafos.length > 1){
+        html += `<details style="margin-top:10px">
+          <summary style="cursor:pointer;color:var(--dim);font-size:.78rem">Contexto anterior</summary>
+          <div style="margin-top:8px">${marked.parse(parrafos.slice(1).join('\n\n'))}</div>
+        </details>`;
+      }
+      modoEl.innerHTML = html;
+    }
   }catch(e){
     modoEl.innerHTML = `<p class="error-msg">Error leyendo ESTADO_ACTUAL.md: ${e.message}</p>`;
   }
