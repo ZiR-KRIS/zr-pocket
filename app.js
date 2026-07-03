@@ -101,7 +101,7 @@ function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// Muestra un párrafo largo truncado con botón "seguir leyendo" para expandirlo entero.
+// Muestra un párrafo largo truncado con botón que alterna "seguir leyendo" / "leer menos".
 function renderParrafoExpandible(contenedor, texto, limite = 260){
   const div = document.createElement('div');
   contenedor.appendChild(div);
@@ -111,14 +111,17 @@ function renderParrafoExpandible(contenedor, texto, limite = 260){
   }
   let corte = texto.lastIndexOf(' ', limite);
   if(corte <= 0) corte = limite;
-  div.innerHTML = marked.parse(texto.slice(0, corte).trim() + '…');
+  const truncado = texto.slice(0, corte).trim() + '…';
+  let expandido = false;
+  div.innerHTML = marked.parse(truncado);
   const btn = document.createElement('button');
   btn.className = 'copiar';
   btn.style.marginTop = '6px';
   btn.textContent = 'seguir leyendo ▾';
   btn.addEventListener('click', () => {
-    div.innerHTML = marked.parse(texto);
-    btn.remove();
+    expandido = !expandido;
+    div.innerHTML = marked.parse(expandido ? texto : truncado);
+    btn.textContent = expandido ? 'leer menos ▴' : 'seguir leyendo ▾';
   });
   contenedor.appendChild(btn);
 }
