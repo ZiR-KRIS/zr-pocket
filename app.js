@@ -101,6 +101,28 @@ function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+// Muestra un párrafo largo truncado con botón "seguir leyendo" para expandirlo entero.
+function renderParrafoExpandible(contenedor, texto, limite = 260){
+  const div = document.createElement('div');
+  contenedor.appendChild(div);
+  if(texto.length <= limite){
+    div.innerHTML = marked.parse(texto);
+    return;
+  }
+  let corte = texto.lastIndexOf(' ', limite);
+  if(corte <= 0) corte = limite;
+  div.innerHTML = marked.parse(texto.slice(0, corte).trim() + '…');
+  const btn = document.createElement('button');
+  btn.className = 'copiar';
+  btn.style.marginTop = '6px';
+  btn.textContent = 'seguir leyendo ▾';
+  btn.addEventListener('click', () => {
+    div.innerHTML = marked.parse(texto);
+    btn.remove();
+  });
+  contenedor.appendChild(btn);
+}
+
 /* ================= HOY ================= */
 async function cargarHoy(){
   const modoEl = document.getElementById('modo-actual');
@@ -115,14 +137,20 @@ async function cargarHoy(){
       modoEl.innerHTML = '<p class="error-msg">No se encontró el bloque MODO ACTUAL.</p>';
     }else{
       const parrafos = seccion.split(/\n\s*\n/).filter(p => p.trim());
-      let html = marked.parse(parrafos[0] || '');
+      modoEl.innerHTML = '';
+      renderParrafoExpandible(modoEl, parrafos[0] || '');
       if(parrafos.length > 1){
-        html += `<details style="margin-top:10px">
-          <summary style="cursor:pointer;color:var(--dim);font-size:.78rem">Contexto anterior</summary>
-          <div style="margin-top:8px">${marked.parse(parrafos.slice(1).join('\n\n'))}</div>
-        </details>`;
+        const det = document.createElement('details');
+        det.style.marginTop = '10px';
+        const sum = document.createElement('summary');
+        sum.style.cursor = 'pointer'; sum.style.color = 'var(--dim)'; sum.style.fontSize = '.78rem';
+        sum.textContent = 'Contexto anterior';
+        const cuerpo = document.createElement('div');
+        cuerpo.style.marginTop = '8px';
+        cuerpo.innerHTML = marked.parse(parrafos.slice(1).join('\n\n'));
+        det.appendChild(sum); det.appendChild(cuerpo);
+        modoEl.appendChild(det);
       }
-      modoEl.innerHTML = html;
     }
   }catch(e){
     modoEl.innerHTML = `<p class="error-msg">Error leyendo ESTADO_ACTUAL.md: ${e.message}</p>`;
