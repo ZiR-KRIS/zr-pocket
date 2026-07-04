@@ -513,6 +513,20 @@ async function cargarProd(){
     bullets.forEach(b => {
       const card = document.createElement('div'); card.className = 'card';
       card.innerHTML = marked.parseInline(b);
+
+      const boldMatch = b.match(/\*\*(.+?)\*\*/);
+      const etiqueta = boldMatch ? boldMatch[1] : '';
+      const btnNota = document.createElement('button');
+      btnNota.className = 'copiar';
+      btnNota.textContent = '＋ nota';
+      btnNota.addEventListener('click', () => {
+        document.getElementById('buzon-tag').value = etiqueta;
+        const txt = document.getElementById('buzon-txt');
+        txt.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        txt.focus();
+      });
+      card.appendChild(btnNota);
+
       cont.appendChild(card);
     });
   }catch(e){
@@ -833,6 +847,45 @@ function fechaHoraLocal(){
   const d = new Date();
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function fechaHoraISO(){
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `${fechaISO()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+// enviarBuzon: inserta el mensaje bajo '## Pendientes' del buzón; sin cola offline
+// (archivo compartido, merge por sha es frágil — decisión de diseño, no se arriesga).
+async function enviarBuzon(){
+  const textoEl = document.getElementById('buzon-txt');
+  const tagEl = document.getElementById('buzon-tag');
+  const toast = document.getElementById('toast-buzon');
+  const texto = textoEl.value.trim();
+  const etiqueta = tagEl.value.trim() || 'general';
+  if(!texto){
+    toast.textContent = 'Falta el mensaje.';
+    toast.style.display = 'block';
+    return;
+  }
+  const PATH_BUZON = '_SISTEMA/ZR_POCKET/BUZON.md';
+  try{
+    const {content, sha} = await GH.getFile(PATH_BUZON);
+    const lineas = content.split('\n');
+    const idxPendientes = lineas.findIndex(l => l.trim() === '## Pendientes');
+    const idxProcesados = lineas.findIndex((l, i) => i > idxPendientes && l.trim() === '## Procesados');
+    let destino = idxProcesados !== -1 ? idxProcesados : lineas.length;
+    while(destino > 0 && lineas[destino - 1].trim() === '') destino--;
+    lineas.splice(destino, 0, `### ${fechaHoraISO()} — ${etiqueta}`, texto);
+    await GH.putFile(PATH_BUZON, lineas.join('\n'), `ZR APP: buzón — ${etiqueta}`, sha);
+
+    textoEl.value = ''; tagEl.value = '';
+    toast.textContent = '✓ en el buzón — la próxima sesión lo ve';
+    toast.style.display = 'block';
+  }catch(e){
+    toast.textContent = 'Sin conexión — no se pudo enviar, reintentá con señal';
+    toast.style.display = 'block';
+  }
 }
 
 async function capturar(){

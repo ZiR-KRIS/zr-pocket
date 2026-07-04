@@ -5,7 +5,7 @@
 <title>ZR App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=12">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
 <div class="phone">
@@ -54,6 +54,14 @@
 
     <!-- ================= PRODUCCIÓN ================= -->
     <section class="screen" id="s-prod">
+      <div class="eyebrow">Al sistema</div>
+      <div class="captura">
+        <textarea id="buzon-txt" placeholder="Mensaje al sistema — la próxima sesión Claude lo lee al abrir"></textarea>
+        <input type="text" id="buzon-tag" placeholder="proyecto/etiqueta (opcional)" style="margin-top:8px">
+        <button onclick="enviarBuzon()" style="margin-top:8px">Al buzón →</button>
+        <div class="toast" id="toast-buzon"></div>
+      </div>
+
       <div class="eyebrow">Proyectos</div>
       <div id="prod-lista"><div class="card">Cargando…</div></div>
 
@@ -200,7 +208,7 @@
 </div>
 
 <script src="marked.min.js"></script>
-<script src="gh-api.js?v=12"></script>
-<script src="app.js?v=12"></script>
+<script src="gh-api.js?v=13"></script>
+<script src="app.js?v=13"></script>
 </body>
 </html>
