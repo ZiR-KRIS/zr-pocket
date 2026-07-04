@@ -142,6 +142,109 @@ function renderParrafoExpandible(contenedor, texto, limite = 260){
   contenedor.appendChild(btn);
 }
 
+/* ================= MODO ACTUAL: tarjetas + chips ================= */
+
+// Root-level: línea "- texto" o "N. texto" (el MODO ACTUAL real hoy usa lista numerada).
+function esBulletRaizModo(linea){
+  return /^(-\s|\d+\.\s)/.test(linea);
+}
+
+function detectarChipModo(textoPlano){
+  const grupos = [
+    { cls: 'ok', palabras: ['TERMINADO','CERRADO','LISTO','RESUELTO','OK'] },
+    { cls: 'wait', palabras: ['EN CURSO','EN PROGRESO','HOY','SIGUIENTE'] },
+    { cls: 'pause', palabras: ['PAUSA','BLOQUEADO','ESPERANDO','PENDIENTE'] },
+  ];
+  let mejor = null;
+  for(const g of grupos){
+    for(const palabra of g.palabras){
+      const re = new RegExp(`\\b${palabra.replace(' ', '\\s+')}\\b`, 'i');
+      const m = textoPlano.match(re);
+      if(m && (mejor === null || m.index < mejor.index)) mejor = { index: m.index, cls: g.cls, palabra: m[0] };
+    }
+  }
+  return mejor;
+}
+
+function renderTarjetaModo(bloqueMd, contenedor){
+  const sinMarcador = bloqueMd.replace(/^(-\s|\d+\.\s)/, '');
+  const plano = sinMarcador.replace(/\*\*/g, '');
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.padding = '10px 12px';
+  card.style.marginBottom = '8px';
+
+  const chip = detectarChipModo(plano);
+  if(chip){
+    const chipEl = document.createElement('span');
+    chipEl.className = `chip ${chip.cls}`;
+    chipEl.textContent = chip.palabra;
+    card.appendChild(chipEl);
+  }
+
+  const emojiMatch = plano.match(/^(\p{Extended_Pictographic}️?)\s*/u);
+  let cuerpoMd = sinMarcador;
+  if(emojiMatch) cuerpoMd = cuerpoMd.replace(emojiMatch[0], '');
+
+  const row = document.createElement('div');
+  row.style.display = 'flex'; row.style.gap = '8px'; row.style.alignItems = 'flex-start';
+  if(emojiMatch){
+    const icoEl = document.createElement('span');
+    icoEl.style.fontSize = '1.05rem';
+    icoEl.textContent = emojiMatch[1];
+    row.appendChild(icoEl);
+  }
+
+  const cuerpoWrap = document.createElement('div');
+  cuerpoWrap.style.flex = '1';
+  const boldMatch = cuerpoMd.match(/^\*\*(.+?)\*\*:?\s*/);
+  if(boldMatch){
+    const h3 = document.createElement('h3');
+    h3.textContent = boldMatch[1].replace(/:$/, '');
+    cuerpoWrap.appendChild(h3);
+    const cuerpoDiv = document.createElement('div');
+    cuerpoDiv.style.color = 'var(--dim)'; cuerpoDiv.style.fontSize = '.84rem';
+    cuerpoDiv.innerHTML = marked.parse(cuerpoMd.slice(boldMatch[0].length));
+    cuerpoWrap.appendChild(cuerpoDiv);
+  }else{
+    const cuerpoDiv = document.createElement('div');
+    cuerpoDiv.style.color = 'var(--dim)'; cuerpoDiv.style.fontSize = '.84rem';
+    cuerpoDiv.innerHTML = marked.parse(cuerpoMd);
+    cuerpoWrap.appendChild(cuerpoDiv);
+  }
+  row.appendChild(cuerpoWrap);
+  card.appendChild(row);
+  contenedor.appendChild(card);
+}
+
+function renderModoActualVisual(seccion, contenedor){
+  contenedor.innerHTML = '';
+  const lineas = seccion.split('\n');
+  const idx = lineas.findIndex(esBulletRaizModo);
+  const introTxt = (idx === -1 ? lineas : lineas.slice(0, idx)).join('\n').trim();
+  if(introTxt) renderParrafoExpandible(contenedor, introTxt);
+
+  if(idx !== -1){
+    const bloques = [];
+    for(let i=idx; i<lineas.length; i++){
+      if(esBulletRaizModo(lineas[i])) bloques.push([lineas[i]]);
+      else if(bloques.length) bloques[bloques.length-1].push(lineas[i]);
+    }
+    bloques.forEach(ls => renderTarjetaModo(ls.join('\n').trim(), contenedor));
+  }
+
+  const btn = document.createElement('button');
+  btn.className = 'copiar';
+  btn.textContent = 'ver texto completo ▸';
+  btn.addEventListener('click', () => {
+    document.getElementById('doc-breadcrumb').textContent = 'ESTADO_ACTUAL.md · MODO ACTUAL';
+    document.getElementById('doc-body').innerHTML = marked.parse(seccion);
+    abrirOverlay('overlay-doc');
+  });
+  contenedor.appendChild(btn);
+}
+
 /* ================= HOY ================= */
 async function cargarHoy(){
   const modoEl = document.getElementById('modo-actual');
@@ -155,21 +258,7 @@ async function cargarHoy(){
     if(!seccion){
       modoEl.innerHTML = '<p class="error-msg">No se encontró el bloque MODO ACTUAL.</p>';
     }else{
-      const parrafos = seccion.split(/\n\s*\n/).filter(p => p.trim());
-      modoEl.innerHTML = '';
-      renderParrafoExpandible(modoEl, parrafos[0] || '');
-      if(parrafos.length > 1){
-        const det = document.createElement('details');
-        det.style.marginTop = '10px';
-        const sum = document.createElement('summary');
-        sum.style.cursor = 'pointer'; sum.style.color = 'var(--dim)'; sum.style.fontSize = '.78rem';
-        sum.textContent = 'Contexto anterior';
-        const cuerpo = document.createElement('div');
-        cuerpo.style.marginTop = '8px';
-        cuerpo.innerHTML = marked.parse(parrafos.slice(1).join('\n\n'));
-        det.appendChild(sum); det.appendChild(cuerpo);
-        modoEl.appendChild(det);
-      }
+      renderModoActualVisual(seccion, modoEl);
     }
   }catch(e){
     modoEl.innerHTML = `<p class="error-msg">Error leyendo ESTADO_ACTUAL.md: ${e.message}</p>`;
