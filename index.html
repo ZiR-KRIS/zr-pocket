@@ -5,7 +5,7 @@
 <title>ZR App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
 <div class="phone">
@@ -33,6 +33,10 @@
         <button onclick="agregarTareaHoy()">+ tarea</button>
       </div>
       <div class="toast" id="toast-hoy"></div>
+
+      <div class="eyebrow">Listas rápidas · solo en este cel</div>
+      <div id="listas-cont"></div>
+      <button class="copiar" onclick="nuevaLista()">+ nueva lista</button>
     </section>
 
     <!-- ================= BAÚL ================= -->
@@ -196,7 +200,7 @@
 </div>
 
 <script src="marked.min.js"></script>
-<script src="gh-api.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="gh-api.js?v=12"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

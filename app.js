@@ -290,6 +290,7 @@ async function cargarHoy(){
   }catch(e){
     tareasEl.innerHTML = `<p class="error-msg">Error leyendo TAREAS.md: ${e.message}</p>`;
   }
+  renderListas();
   actualizarBannerOffline();
 }
 
@@ -356,6 +357,91 @@ async function agregarTareaHoy(){
   }finally{
     input.disabled = false;
   }
+}
+
+/* ================= LISTAS rápidas (solo localStorage, nunca a GH) ================= */
+// 'zrp_listas' = JSON [{nombre, items:[{t, done}]}] — efímero, vive solo en este dispositivo.
+function cargarListasLS(){
+  try{ return JSON.parse(localStorage.getItem('zrp_listas') || '[]'); }catch(e){ return []; }
+}
+function guardarListasLS(listas){
+  localStorage.setItem('zrp_listas', JSON.stringify(listas));
+}
+
+function renderListas(){
+  const cont = document.getElementById('listas-cont');
+  if(!cont) return;
+  const listas = cargarListasLS();
+  cont.innerHTML = '';
+  listas.forEach((lista, li) => {
+    const card = document.createElement('div'); card.className = 'card';
+
+    const head = document.createElement('div');
+    head.style.display = 'flex'; head.style.justifyContent = 'space-between'; head.style.alignItems = 'center';
+    const h3 = document.createElement('h3'); h3.textContent = lista.nombre; h3.style.margin = '0';
+    const btnBorrar = document.createElement('button');
+    btnBorrar.className = 'copiar'; btnBorrar.textContent = '✕'; btnBorrar.style.color = 'var(--dim)';
+    btnBorrar.addEventListener('click', () => {
+      if(!confirm(`¿Borrar lista "${lista.nombre}"?`)) return;
+      const actuales = cargarListasLS();
+      actuales.splice(li, 1);
+      guardarListasLS(actuales);
+      renderListas();
+    });
+    head.appendChild(h3); head.appendChild(btnBorrar);
+    card.appendChild(head);
+
+    lista.items.forEach((item, ii) => {
+      const row = document.createElement('div'); row.className = 'task';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox'; chk.checked = item.done;
+      chk.addEventListener('change', () => {
+        const actuales = cargarListasLS();
+        actuales[li].items[ii].done = chk.checked;
+        guardarListasLS(actuales);
+      });
+      const t = document.createElement('div'); t.className = 't'; t.textContent = item.t;
+      const btnX = document.createElement('button');
+      btnX.className = 'copiar'; btnX.textContent = '✕';
+      btnX.addEventListener('click', () => {
+        const actuales = cargarListasLS();
+        actuales[li].items.splice(ii, 1);
+        guardarListasLS(actuales);
+        renderListas();
+      });
+      row.appendChild(chk); row.appendChild(t); row.appendChild(btnX);
+      card.appendChild(row);
+    });
+
+    const inputRow = document.createElement('div');
+    inputRow.style.display = 'flex'; inputRow.style.gap = '8px'; inputRow.style.marginTop = '8px';
+    const input = document.createElement('input');
+    input.type = 'text'; input.placeholder = 'Nuevo ítem…'; input.style.flex = '1';
+    const btnAdd = document.createElement('button'); btnAdd.textContent = '+';
+    const agregarItem = () => {
+      const texto = input.value.trim();
+      if(!texto) return;
+      const actuales = cargarListasLS();
+      actuales[li].items.push({ t: texto, done: false });
+      guardarListasLS(actuales);
+      input.value = '';
+      renderListas();
+    };
+    btnAdd.addEventListener('click', agregarItem);
+    inputRow.appendChild(input); inputRow.appendChild(btnAdd);
+    card.appendChild(inputRow);
+
+    cont.appendChild(card);
+  });
+}
+
+function nuevaLista(){
+  const nombre = prompt('Nombre de la lista');
+  if(!nombre || !nombre.trim()) return;
+  const listas = cargarListasLS();
+  listas.push({ nombre: nombre.trim(), items: [] });
+  guardarListasLS(listas);
+  renderListas();
 }
 
 /* ================= BAÚL ================= */
