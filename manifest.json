@@ -1,6 +1,6 @@
 {
-  "name": "ZR Pocket",
-  "short_name": "ZR Pocket",
+  "name": "ZR App",
+  "short_name": "ZR App",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

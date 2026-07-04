@@ -222,7 +222,7 @@ async function toggleTarea(indice, texto, checkboxEl){
   const nuevoContenido = lineas.join('\n');
   try{
     const accion = estabaMarcada ? 'desmarcada' : 'marcada';
-    const resp = await GH.putFile('_SISTEMA/ZR_POCKET/TAREAS.md', nuevoContenido, `POCKET: tarea ${accion} — ${texto}`, tareasSha);
+    const resp = await GH.putFile('_SISTEMA/ZR_POCKET/TAREAS.md', nuevoContenido, `ZR APP: tarea ${accion} — ${texto}`, tareasSha);
     tareasRaw = nuevoContenido;
     tareasSha = resp.content.sha;
   }catch(e){
@@ -508,10 +508,10 @@ async function capturar(){
 
   const primeraLinea = texto.split('\n')[0].trim();
   const slug = slugify3(primeraLinea);
-  const nombre = `pocket_${fechaISO()}_${slug}.md`;
+  const nombre = `zrapp_${fechaISO()}_${slug}.md`;
   const path = `IDEAS/${nombre}`;
-  const contenido = `# ${primeraLinea}\n\n${texto}\n\n*Capturada desde ZR Pocket, ${fechaHoraLocal()}.*\n`;
-  const mensaje = `POCKET: idea capturada — ${slug}`;
+  const contenido = `# ${primeraLinea}\n\n${texto}\n\n*Capturada desde ZR App, ${fechaHoraLocal()}.*\n`;
+  const mensaje = `ZR APP: idea capturada — ${slug}`;
 
   mostrarToast('Subiendo…');
   try{
