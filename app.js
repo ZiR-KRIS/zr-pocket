@@ -22,6 +22,7 @@ function cargarSiHaceFalta(id){
   else if(id==='baul') cargarBaul();
   else if(id==='prod') cargarProd();
   else if(id==='negocio') cargarNegocio();
+  else if(id==='cal') cargarCal();
 }
 
 /* ================= overlays (setup / ajustes / doc) ================= */
@@ -491,6 +492,112 @@ function copiarBloque(btn){
     btn.textContent = 'copiado ✓';
     setTimeout(() => btn.textContent = original, 1500);
   });
+}
+
+/* ================= CAL ================= */
+async function cargarCal(){
+  const cont = document.getElementById('cal-lista');
+  cont.innerHTML = '<p>Cargando…</p>';
+  try{
+    const {content} = await GH.getFile('_SISTEMA/ZR_POCKET/AGENDA.md');
+    const seccion = extraerSeccion(content, '## Próximos') || '';
+    const hoyISO = fechaISO();
+    const eventos = seccion.split('\n')
+      .map(l => l.match(/^- (\d{4}-\d{2}-\d{2})( \d{2}:\d{2})? — \[(trabajo|personal)\] (.+)$/))
+      .filter(Boolean)
+      .map(m => ({ fecha: m[1], hora: m[2] ? m[2].trim() : '', tipo: m[3], titulo: m[4] }))
+      .filter(ev => ev.fecha >= hoyISO)
+      .sort((a,b) => (a.fecha + (a.hora || '99:99')).localeCompare(b.fecha + (b.hora || '99:99')));
+    cont.innerHTML = '';
+    if(eventos.length === 0){
+      cont.innerHTML = '<p>Nada agendado.</p>';
+    }else{
+      eventos.forEach(ev => {
+        const div = document.createElement('div'); div.className = 'dia';
+        const h = document.createElement('div'); h.className = 'h';
+        const [, mo, d] = ev.fecha.split('-');
+        h.textContent = `${d}-${mo}` + (ev.hora ? ` ${ev.hora}` : '');
+        const t = document.createElement('div'); t.style.flex = '1';
+        t.innerHTML = marked.parseInline(ev.titulo);
+        const chip = document.createElement('span');
+        chip.className = `chip ${ev.tipo === 'trabajo' ? 'ok' : 'pause'}`;
+        chip.textContent = ev.tipo;
+        div.appendChild(h); div.appendChild(t); div.appendChild(chip);
+        cont.appendChild(div);
+      });
+    }
+  }catch(e){
+    cont.innerHTML = e.status === 404 ? '<p>Nada agendado.</p>' : `<p class="error-msg">Error leyendo AGENDA.md: ${e.message}</p>`;
+  }
+  actualizarBannerOffline();
+}
+
+function sumarDiasISO(fechaISO, dias){
+  const [y, m, d] = fechaISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + dias);
+  return dt.toISOString().slice(0, 10).replace(/-/g, '');
+}
+
+function construirUrlGCal(titulo, fecha, hora, tipo){
+  const inicioDigitos = fecha.replace(/-/g, '');
+  let dates;
+  if(hora){
+    const [hh, mm] = hora.split(':').map(Number);
+    const inicio = `${inicioDigitos}T${String(hh).padStart(2,'0')}${String(mm).padStart(2,'0')}00`;
+    const hh2 = hh + 1;
+    const finDigitos = hh2 >= 24 ? sumarDiasISO(fecha, 1) : inicioDigitos;
+    const fin = `${finDigitos}T${String(hh2 % 24).padStart(2,'0')}${String(mm).padStart(2,'0')}00`;
+    dates = `${inicio}/${fin}`;
+  }else{
+    dates = `${inicioDigitos}/${sumarDiasISO(fecha, 1)}`;
+  }
+  const details = encodeURIComponent(`[${tipo}] agendado desde ZR App`);
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${dates}&details=${details}`;
+}
+
+function mostrarLinkGCal(titulo, fecha, hora, tipo){
+  const cont = document.getElementById('gcal-temp');
+  cont.innerHTML = '';
+  const a = document.createElement('a');
+  a.className = 'gcal'; a.target = '_blank'; a.rel = 'noopener';
+  a.href = construirUrlGCal(titulo, fecha, hora, tipo);
+  a.textContent = 'Agregarlo a Google Calendar →';
+  cont.appendChild(a);
+}
+
+async function agendarEvento(){
+  const titulo = document.getElementById('ev-titulo').value.trim();
+  const fecha = document.getElementById('ev-fecha').value;
+  const hora = document.getElementById('ev-hora').value;
+  const tipo = document.getElementById('ev-tipo').value;
+  const toast = document.getElementById('toast-cal');
+  if(!titulo || !fecha){
+    toast.textContent = 'Falta título o fecha.';
+    toast.style.display = 'block';
+    return;
+  }
+  try{
+    const {content, sha} = await GH.getFile('_SISTEMA/ZR_POCKET/AGENDA.md');
+    const lineas = content.split('\n');
+    const idxProximos = lineas.findIndex(l => l.trim() === '## Próximos');
+    const idxPasados = lineas.findIndex((l, i) => i > idxProximos && l.trim() === '## Pasados');
+    let destino = idxPasados !== -1 ? idxPasados : lineas.length;
+    while(destino > 0 && lineas[destino - 1].trim() === '') destino--;
+    lineas.splice(destino, 0, `- ${fecha}${hora ? ' ' + hora : ''} — [${tipo}] ${titulo}`);
+    await GH.putFile('_SISTEMA/ZR_POCKET/AGENDA.md', lineas.join('\n'), `ZR APP: evento — ${titulo}`, sha);
+
+    document.getElementById('ev-titulo').value = '';
+    document.getElementById('ev-fecha').value = '';
+    document.getElementById('ev-hora').value = '';
+    toast.textContent = '✓ agendado';
+    toast.style.display = 'block';
+    cargarCal();
+    mostrarLinkGCal(titulo, fecha, hora, tipo);
+  }catch(e){
+    toast.textContent = `Error: ${e.message}`;
+    toast.style.display = 'block';
+  }
 }
 
 /* ================= navegador de repo ================= */

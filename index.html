@@ -5,7 +5,7 @@
 <title>ZR App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=10">
+<link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
 <div class="phone">
@@ -97,7 +97,25 @@
 
     <!-- ================= CAL ================= -->
     <section class="screen" id="s-cal">
-      <div class="eyebrow">Calendario</div>
+      <div class="eyebrow">Agendar</div>
+      <div class="captura">
+        <input type="text" id="ev-titulo" placeholder="Qué — ej. reunión Frank">
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <input type="date" id="ev-fecha" style="flex:1">
+          <input type="time" id="ev-hora" style="flex:1">
+        </div>
+        <select id="ev-tipo" style="margin-top:8px">
+          <option value="trabajo">trabajo</option>
+          <option value="personal">personal</option>
+        </select>
+        <button onclick="agendarEvento()" style="margin-top:8px">Agendar →</button>
+        <div class="toast" id="toast-cal"></div>
+        <div id="gcal-temp"></div>
+      </div>
+
+      <div class="eyebrow">Próximos</div>
+      <div class="card" id="cal-lista" style="padding:4px 14px"></div>
+
       <a class="gcal" href="https://calendar.google.com" target="_blank" rel="noopener">
         Abrir Google Calendar
         <span>convive con el que ya usás — la app no lo reemplaza, solo lo muestra</span>
@@ -178,7 +196,7 @@
 </div>
 
 <script src="marked.min.js"></script>
-<script src="gh-api.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="gh-api.js?v=11"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>
