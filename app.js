@@ -106,6 +106,10 @@ function escapeHtml(s){
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+function escapeRegExp(s){
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // El SW marca las respuestas servidas desde caché (sin red) — reflejarlo en un aviso fijo.
 function actualizarBannerOffline(){
   const banner = document.getElementById('offline-banner');
@@ -445,29 +449,53 @@ async function cargarBaul(){
   try{
     const items = await GH.listDir('IDEAS');
     const mdFiles = items.filter(it => it.type === 'file' && /\.md$/i.test(it.name));
-    cont.innerHTML = '';
     if(mdFiles.length === 0){
       cont.innerHTML = '<div class="card"><p>El baúl está vacío.</p></div>';
       actualizarBannerOffline();
       return;
     }
-    mdFiles.forEach(f => {
+
+    let tareasTexto = '';
+    try{ tareasTexto = (await GH.getFile('_SISTEMA/ZR_POCKET/TAREAS.md')).content; }catch(e){ /* sin tareas.md, no bloquea el baúl */ }
+
+    const ideas = await Promise.all(mdFiles.map(async f => {
+      let titulo = f.name.replace(/\.md$/, '');
+      let meta = '';
+      try{
+        const {content} = await GH.getFile(f.path);
+        const headingMatch = content.match(/^#\s+(.+)$/m);
+        const fechaMatch = f.name.match(/(\d{4}-\d{2}-\d{2})/);
+        if(headingMatch) titulo = headingMatch[1].trim();
+        meta = (fechaMatch ? fechaMatch[1] + ' · ' : '') + f.name;
+      }catch(e){ /* deja el fallback (nombre de archivo) como título */ }
+      const yaEnTareas = new RegExp(`- \\[( |x|X)\\]\\s*${escapeRegExp(titulo)} \\(del baúl\\)`).test(tareasTexto);
+      return { f, titulo, meta, yaEnTareas };
+    }));
+
+    // Pendientes primero; las ya clonadas a tareas bajan al final.
+    ideas.sort((a, b) => (a.yaEnTareas === b.yaEnTareas) ? 0 : (a.yaEnTareas ? 1 : -1));
+
+    cont.innerHTML = '';
+    ideas.forEach(({ f, titulo, meta, yaEnTareas }) => {
       const card = document.createElement('div'); card.className = 'card idea';
       card.style.cursor = 'pointer';
-      const h3 = document.createElement('h3'); h3.textContent = f.name.replace(/\.md$/,'');
+      if(yaEnTareas) card.style.opacity = '0.55';
+
+      const h3 = document.createElement('h3'); h3.textContent = titulo;
       card.appendChild(h3);
       card.addEventListener('click', () => abrirDoc(f.path));
 
       const btnTarea = document.createElement('button');
       btnTarea.className = 'copiar';
-      btnTarea.textContent = '→ a tareas';
+      btnTarea.textContent = yaEnTareas ? '✓ en tareas' : '→ a tareas';
+      btnTarea.disabled = yaEnTareas;
       btnTarea.addEventListener('click', async (event) => {
         event.stopPropagation();
-        const titulo = h3.textContent;
         btnTarea.disabled = true;
         try{
           await appendTarea(`${titulo} (del baúl)`, `ZR APP: tarea desde baúl — ${titulo}`);
           btnTarea.textContent = '✓ en tareas';
+          card.style.opacity = '0.55';
         }catch(e){
           btnTarea.disabled = false;
           alert(`No se pudo agregar: ${e.message}`);
@@ -475,16 +503,13 @@ async function cargarBaul(){
       });
       card.appendChild(btnTarea);
 
-      cont.appendChild(card);
+      if(meta){
+        const metaEl = document.createElement('div'); metaEl.className = 'meta';
+        metaEl.textContent = meta;
+        card.appendChild(metaEl);
+      }
 
-      GH.getFile(f.path).then(({content}) => {
-        const headingMatch = content.match(/^#\s+(.+)$/m);
-        const fechaMatch = f.name.match(/(\d{4}-\d{2}-\d{2})/);
-        if(headingMatch) h3.textContent = headingMatch[1].trim();
-        const meta = document.createElement('div'); meta.className = 'meta';
-        meta.textContent = (fechaMatch ? fechaMatch[1] + ' · ' : '') + f.name;
-        card.appendChild(meta);
-      }).catch(()=>{ /* deja el fallback (nombre de archivo) como título */ });
+      cont.appendChild(card);
     });
   }catch(e){
     cont.innerHTML = `<div class="card"><p class="error-msg">Error leyendo IDEAS/: ${e.message}</p></div>`;
