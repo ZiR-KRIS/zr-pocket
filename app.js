@@ -200,20 +200,14 @@ function renderTarjetaModo(bloqueMd, contenedor){
   const cuerpoWrap = document.createElement('div');
   cuerpoWrap.style.flex = '1';
   const boldMatch = cuerpoMd.match(/^\*\*(.+?)\*\*:?\s*/);
+  let textoCuerpo = cuerpoMd;
   if(boldMatch){
     const h3 = document.createElement('h3');
     h3.textContent = boldMatch[1].replace(/:$/, '');
     cuerpoWrap.appendChild(h3);
-    const cuerpoDiv = document.createElement('div');
-    cuerpoDiv.style.color = 'var(--dim)'; cuerpoDiv.style.fontSize = '.84rem';
-    cuerpoDiv.innerHTML = marked.parse(cuerpoMd.slice(boldMatch[0].length));
-    cuerpoWrap.appendChild(cuerpoDiv);
-  }else{
-    const cuerpoDiv = document.createElement('div');
-    cuerpoDiv.style.color = 'var(--dim)'; cuerpoDiv.style.fontSize = '.84rem';
-    cuerpoDiv.innerHTML = marked.parse(cuerpoMd);
-    cuerpoWrap.appendChild(cuerpoDiv);
+    textoCuerpo = cuerpoMd.slice(boldMatch[0].length);
   }
+  if(textoCuerpo.trim()) renderParrafoExpandible(cuerpoWrap, textoCuerpo, 160);
   row.appendChild(cuerpoWrap);
   card.appendChild(row);
   contenedor.appendChild(card);
