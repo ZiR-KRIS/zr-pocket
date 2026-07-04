@@ -5,7 +5,7 @@
 <title>ZR App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
 <div class="phone">
@@ -71,40 +71,55 @@
 
     <!-- ================= NEGOCIO ================= -->
     <section class="screen" id="s-negocio">
-      <div class="eyebrow">Pitch</div>
-      <div class="card">
-        <div class="doc-content" id="neg-pitch"><p>Cargando…</p></div>
+      <div class="eyebrow-row"><div class="eyebrow" style="margin:0">Pitch</div><button class="repo-btn" onclick="toggleNegBloque('neg-pitch')" title="mostrar/ocultar">👁</button></div>
+      <div id="neg-pitch-wrap">
+        <div class="card">
+          <div class="doc-content" id="neg-pitch"><p>Cargando…</p></div>
+        </div>
       </div>
+      <div class="card" id="neg-pitch-oculto" style="display:none"><p class="hint">oculto — 👁 para mostrar</p></div>
 
-      <div class="eyebrow">Servicios</div>
-      <div class="card">
-        <div class="doc-content" id="neg-servicios"><p>Cargando…</p></div>
-        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+      <div class="eyebrow-row"><div class="eyebrow" style="margin:0">Servicios</div><button class="repo-btn" onclick="toggleNegBloque('neg-servicios')" title="mostrar/ocultar">👁</button></div>
+      <div id="neg-servicios-wrap">
+        <div class="card">
+          <div class="doc-content" id="neg-servicios"><p>Cargando…</p></div>
+          <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+        </div>
       </div>
+      <div class="card" id="neg-servicios-oculto" style="display:none"><p class="hint">oculto — 👁 para mostrar</p></div>
 
-      <div class="eyebrow">Precios</div>
-      <div class="card">
-        <div class="doc-content" id="neg-precios"><p>Cargando…</p></div>
-        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+      <div class="eyebrow-row"><div class="eyebrow" style="margin:0">Precios</div><button class="repo-btn" onclick="toggleNegBloque('neg-precios')" title="mostrar/ocultar">👁</button></div>
+      <div id="neg-precios-wrap">
+        <div class="card">
+          <div class="doc-content" id="neg-precios"><p>Cargando…</p></div>
+          <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+        </div>
       </div>
+      <div class="card" id="neg-precios-oculto" style="display:none"><p class="hint">oculto — 👁 para mostrar</p></div>
 
-      <div class="eyebrow">Bio</div>
-      <details class="card">
-        <summary>Bio corta</summary>
-        <div class="doc-content" id="neg-bio-corta"><p>Cargando…</p></div>
-        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
-      </details>
-      <details class="card">
-        <summary>Bio larga</summary>
-        <div class="doc-content" id="neg-bio-larga"><p>Cargando…</p></div>
-        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
-      </details>
-
-      <div class="eyebrow">Contacto</div>
-      <div class="card">
-        <div class="doc-content" id="neg-firma"><p>Cargando…</p></div>
-        <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+      <div class="eyebrow-row"><div class="eyebrow" style="margin:0">Bio</div><button class="repo-btn" onclick="toggleNegBloque('neg-bio')" title="mostrar/ocultar">👁</button></div>
+      <div id="neg-bio-wrap">
+        <details class="card">
+          <summary>Bio corta</summary>
+          <div class="doc-content" id="neg-bio-corta"><p>Cargando…</p></div>
+          <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+        </details>
+        <details class="card">
+          <summary>Bio larga</summary>
+          <div class="doc-content" id="neg-bio-larga"><p>Cargando…</p></div>
+          <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+        </details>
       </div>
+      <div class="card" id="neg-bio-oculto" style="display:none"><p class="hint">oculto — 👁 para mostrar</p></div>
+
+      <div class="eyebrow-row"><div class="eyebrow" style="margin:0">Contacto</div><button class="repo-btn" onclick="toggleNegBloque('neg-firma')" title="mostrar/ocultar">👁</button></div>
+      <div id="neg-firma-wrap">
+        <div class="card">
+          <div class="doc-content" id="neg-firma"><p>Cargando…</p></div>
+          <button class="copiar" onclick="copiarBloque(this)">copiar</button>
+        </div>
+      </div>
+      <div class="card" id="neg-firma-oculto" style="display:none"><p class="hint">oculto — 👁 para mostrar</p></div>
     </section>
 
     <!-- ================= CAL ================= -->
@@ -208,7 +223,7 @@
 </div>
 
 <script src="marked.min.js"></script>
-<script src="gh-api.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="gh-api.js?v=14"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>

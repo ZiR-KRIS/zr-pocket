@@ -560,17 +560,34 @@ function itemAcceso(label, onClick){
 }
 
 /* ================= NEGOCIO ================= */
-async function cargarNegocio(){
-  const mapa = [
-    ['_EMPRESA/Branding/one_liner.md', 'neg-pitch'],
-    ['_EMPRESA/Branding/descripcion_servicios.md', 'neg-servicios'],
-    ['_EMPRESA/Precios/precios_zir_2026.md', 'neg-precios'],
+// Mapa de NEGOCIO por grupo (neg-bio agrupa dos archivos que se ocultan/muestran juntos).
+const NEG_MAPA = {
+  'neg-pitch': [['_EMPRESA/Branding/one_liner.md', 'neg-pitch']],
+  'neg-servicios': [['_EMPRESA/Branding/descripcion_servicios.md', 'neg-servicios']],
+  'neg-precios': [['_EMPRESA/Precios/precios_zir_2026.md', 'neg-precios']],
+  'neg-bio': [
     ['_EMPRESA/Bio_Presentacion/bio_instagram.md', 'neg-bio-corta'],
     ['_EMPRESA/Branding/bio_larga.md', 'neg-bio-larga'],
-    ['_EMPRESA/Branding/firma_email.md', 'neg-firma'],
-  ];
-  for(const [path, id] of mapa){
-    const el = document.getElementById(id);
+  ],
+  'neg-firma': [['_EMPRESA/Branding/firma_email.md', 'neg-firma']],
+};
+
+// zrp_neg_ocultos: array de ids de bloque ocultos, solo este dispositivo. Precios nace oculto.
+function cargarOcultosNeg(){
+  try{ return JSON.parse(localStorage.getItem('zrp_neg_ocultos') || '["neg-precios"]'); }catch(e){ return ['neg-precios']; }
+}
+function guardarOcultosNeg(lista){ localStorage.setItem('zrp_neg_ocultos', JSON.stringify(lista)); }
+
+function aplicarVisibilidadBloqueNeg(id, oculto){
+  const wrap = document.getElementById(`${id}-wrap`);
+  const placeholder = document.getElementById(`${id}-oculto`);
+  if(wrap) wrap.style.display = oculto ? 'none' : '';
+  if(placeholder) placeholder.style.display = oculto ? '' : 'none';
+}
+
+async function cargarBloqueNeg(groupId){
+  for(const [path, domId] of (NEG_MAPA[groupId] || [])){
+    const el = document.getElementById(domId);
     if(!el) continue;
     try{
       const {content} = await GH.getFile(path);
@@ -580,6 +597,29 @@ async function cargarNegocio(){
     }
   }
   actualizarBannerOffline();
+}
+
+function toggleNegBloque(id){
+  const ocultos = cargarOcultosNeg();
+  const idx = ocultos.indexOf(id);
+  const vaAOcultar = idx === -1;
+  if(vaAOcultar) ocultos.push(id); else ocultos.splice(idx, 1);
+  guardarOcultosNeg(ocultos);
+  aplicarVisibilidadBloqueNeg(id, vaAOcultar);
+  if(!vaAOcultar) cargarBloqueNeg(id);
+}
+
+async function cargarNegocio(){
+  const ocultos = cargarOcultosNeg();
+  const visibles = [];
+  Object.keys(NEG_MAPA).forEach(groupId => {
+    const oculto = ocultos.includes(groupId);
+    aplicarVisibilidadBloqueNeg(groupId, oculto);
+    if(!oculto) visibles.push(groupId);
+  });
+  for(const groupId of visibles){
+    await cargarBloqueNeg(groupId);
+  }
 }
 
 function copiarBloque(btn){
