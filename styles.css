@@ -77,6 +77,11 @@ main{flex:1; overflow-y:auto; padding:16px 16px 90px}
   color:var(--text); font:inherit; font-size:.9rem; min-height:58px; outline:none;
 }
 .captura textarea::placeholder{color:var(--faint)}
+.captura input[type="text"]{
+  background:transparent; border:none; border-bottom:1px solid var(--line);
+  color:var(--text); font:inherit; font-size:.9rem; outline:none; padding:6px 0;
+}
+.captura input[type="text"]::placeholder{color:var(--faint)}
 .captura button{
   background:var(--amber); color:#181206; border:none; border-radius:6px;
   font-weight:700; font-size:.82rem; padding:9px 16px; cursor:pointer;

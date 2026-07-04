@@ -5,7 +5,7 @@
 <title>ZR App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
 <div class="phone">
@@ -27,6 +27,12 @@
 
       <div class="eyebrow">Tareas por importancia</div>
       <div class="card" id="tareas-lista" style="padding:4px 14px"><p style="color:var(--dim)">Cargando…</p></div>
+
+      <div class="captura" style="padding:8px 10px; display:flex; gap:8px; align-items:center">
+        <input type="text" id="tarea-txt" placeholder="Nueva tarea…" style="flex:1">
+        <button onclick="agregarTareaHoy()">+ tarea</button>
+      </div>
+      <div class="toast" id="toast-hoy"></div>
     </section>
 
     <!-- ================= BAÚL ================= -->
@@ -172,7 +178,7 @@
 </div>
 
 <script src="marked.min.js"></script>
-<script src="gh-api.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="gh-api.js?v=10"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>

@@ -322,6 +322,41 @@ async function toggleTarea(indice, texto, checkboxEl){
   }
 }
 
+// Agrega una tarea al final de la última checklist de TAREAS.md.
+async function appendTarea(texto, mensajeCommit){
+  const {content, sha} = await GH.getFile('_SISTEMA/ZR_POCKET/TAREAS.md');
+  const lineas = content.split('\n');
+  let ultimoIdx = -1;
+  for(let i=0; i<lineas.length; i++){
+    if(/^- \[( |x|X)\]/.test(lineas[i])) ultimoIdx = i;
+  }
+  if(ultimoIdx === -1) ultimoIdx = lineas.length - 1;
+  lineas.splice(ultimoIdx + 1, 0, `- [ ] ${texto}`);
+  await GH.putFile('_SISTEMA/ZR_POCKET/TAREAS.md', lineas.join('\n'), mensajeCommit, sha);
+  cargado.delete('hoy');
+}
+
+async function agregarTareaHoy(){
+  const input = document.getElementById('tarea-txt');
+  const toast = document.getElementById('toast-hoy');
+  const texto = input.value.trim();
+  if(!texto) return;
+  input.disabled = true;
+  try{
+    await appendTarea(texto, `ZR APP: tarea nueva — ${texto}`);
+    input.value = '';
+    toast.textContent = '✓ tarea agregada';
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2000);
+    cargarHoy();
+  }catch(e){
+    toast.textContent = `Error: ${e.message}`;
+    toast.style.display = 'block';
+  }finally{
+    input.disabled = false;
+  }
+}
+
 /* ================= BAÚL ================= */
 async function cargarBaul(){
   const cont = document.getElementById('baul-lista');
@@ -341,6 +376,24 @@ async function cargarBaul(){
       const h3 = document.createElement('h3'); h3.textContent = f.name.replace(/\.md$/,'');
       card.appendChild(h3);
       card.addEventListener('click', () => abrirDoc(f.path));
+
+      const btnTarea = document.createElement('button');
+      btnTarea.className = 'copiar';
+      btnTarea.textContent = '→ a tareas';
+      btnTarea.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        const titulo = h3.textContent;
+        btnTarea.disabled = true;
+        try{
+          await appendTarea(`${titulo} (del baúl)`, `ZR APP: tarea desde baúl — ${titulo}`);
+          btnTarea.textContent = '✓ en tareas';
+        }catch(e){
+          btnTarea.disabled = false;
+          alert(`No se pudo agregar: ${e.message}`);
+        }
+      });
+      card.appendChild(btnTarea);
+
       cont.appendChild(card);
 
       GH.getFile(f.path).then(({content}) => {
