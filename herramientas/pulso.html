@@ -1,0 +1,416 @@
+<title>PULSO — lab de tipografía reactiva</title>
+<style>
+  :root{
+    --bg:#101012; --panel:#1a1a1e; --line:#2a2a30; --ink:#e8e6e0; --dim:#8a877e;
+    --vu:#ffb300; --peak:#ff4438;
+  }
+  *{box-sizing:border-box; margin:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+    font-size:13px; display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{
+    display:flex; align-items:center; gap:14px; padding:10px 16px;
+    border-bottom:1px solid var(--line); flex-wrap:wrap;
+  }
+  header h1{font-size:15px; letter-spacing:.18em; font-weight:700}
+  header h1 em{color:var(--vu); font-style:normal}
+  header .tag{color:var(--dim); font-size:11px; letter-spacing:.08em}
+  header .spacer{flex:1}
+  main{flex:1; display:flex; min-height:0}
+  aside{
+    width:270px; min-width:270px; overflow-y:auto; padding:14px;
+    border-right:1px solid var(--line); background:var(--panel);
+    display:flex; flex-direction:column; gap:14px;
+  }
+  fieldset{border:1px solid var(--line); padding:10px 10px 12px}
+  legend{padding:0 6px; font-size:10px; letter-spacing:.22em; color:var(--vu)}
+  .row{display:flex; align-items:center; gap:8px; margin-top:8px}
+  .row label{width:86px; color:var(--dim); font-size:11px; letter-spacing:.06em; flex-shrink:0}
+  .row output{width:34px; text-align:right; font-variant-numeric:tabular-nums; font-size:11px}
+  input[type=range]{flex:1; accent-color:var(--vu); min-width:0}
+  input[type=text],select{
+    flex:1; min-width:0; background:var(--bg); color:var(--ink);
+    border:1px solid var(--line); padding:6px 8px; font:inherit;
+  }
+  input[type=color]{width:38px; height:26px; border:1px solid var(--line); background:var(--bg); padding:2px}
+  button{
+    background:var(--bg); color:var(--ink); border:1px solid var(--line);
+    padding:7px 10px; font:inherit; font-size:11px; letter-spacing:.1em; cursor:pointer;
+  }
+  button:hover{border-color:var(--vu); color:var(--vu)}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--vu); outline-offset:1px}
+  button.on{background:var(--vu); color:#000; border-color:var(--vu)}
+  button.rec.on{background:var(--peak); border-color:var(--peak); color:#fff}
+  .btnrow{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
+  .btnrow button{flex:1}
+  .vu{display:flex; gap:6px; height:44px; align-items:flex-end; margin-top:10px}
+  .vu .b{flex:1; background:var(--line); position:relative; overflow:hidden}
+  .vu .b i{position:absolute; left:0; right:0; bottom:0; height:0%; background:var(--vu)}
+  .vu .b span{position:absolute; top:2px; left:0; right:0; text-align:center; font-size:9px; color:var(--dim); letter-spacing:.15em}
+  #vuG i{background:linear-gradient(to top,var(--vu),var(--peak))}
+  .stage{flex:1; display:flex; align-items:center; justify-content:center; padding:18px; min-width:0}
+  canvas#cv{max-width:100%; max-height:100%; border:1px solid var(--line); background:#000}
+  .file{font-size:11px; color:var(--dim); margin-top:8px; word-break:break-all}
+  .hide{display:none !important}
+  @media (max-width:760px){ main{flex-direction:column} aside{width:100%; min-width:0; max-height:45%} }
+</style>
+
+<header>
+  <h1>PUL<em>SO</em></h1>
+  <span class="tag">lab de tipografía reactiva · v2 halftone · ZiR</span>
+  <span class="spacer"></span>
+  <button id="btnPause">⏸ PAUSA</button>
+  <button id="btnPng">PNG ↓</button>
+  <button id="btnRec" class="rec">● REC</button>
+</header>
+
+<main>
+  <aside>
+    <fieldset>
+      <legend>FUENTE</legend>
+      <div class="row">
+        <select id="srcMode">
+          <option value="texto">TEXTO</option>
+          <option value="media">IMAGEN / VIDEO</option>
+          <option value="cam">WEBCAM</option>
+        </select>
+      </div>
+      <div id="grpTexto">
+        <div class="row"><input type="text" id="txt" value="S" aria-label="texto"></div>
+        <div class="row"><label for="font">TIPOGRAFÍA</label>
+          <select id="font">
+            <option>Impact</option><option>Arial Black</option>
+            <option>Haettenschweiler</option><option>Georgia</option>
+            <option>Courier New</option><option>Verdana</option>
+          </select></div>
+        <div class="row"><label for="size">TAMAÑO</label><input type="range" id="size" min="20" max="95" value="78"><output>78</output></div>
+      </div>
+      <div id="grpMedia" class="hide">
+        <div class="btnrow"><button id="btnMedia">CARGAR IMG/VIDEO</button></div>
+        <input type="file" id="mediaFile" accept="image/*,video/*" hidden>
+        <div class="file" id="mname">sin medio cargado</div>
+        <div class="row"><label for="niveles">NIVELES</label><input type="range" id="niveles" min="2" max="10" value="7"><output>7</output></div>
+        <div class="row"><label for="umbral">UMBRAL</label><input type="range" id="umbral" min="0" max="90" value="12"><output>12</output></div>
+        <div class="btnrow"><button id="btnNeg">NEGATIVO</button></div>
+      </div>
+      <div class="row"><label for="aspect">FORMATO</label>
+        <select id="aspect"><option value="1080x1080">1:1</option><option value="1080x1920">9:16</option><option value="1920x1080">16:9</option></select></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>GRILLA</legend>
+      <div class="row"><label for="dens">DENSIDAD</label><input type="range" id="dens" min="6" max="48" value="22"><output>22</output></div>
+      <div class="row"><label for="thick">GROSOR</label><input type="range" id="thick" min="10" max="200" value="90"><output>90</output></div>
+      <div class="row"><label for="eje">FORMA</label>
+        <select id="eje"><option value="V">BARRAS ↕</option><option value="H">BARRAS ↔</option><option value="P">PUNTOS</option><option value="B">BLOQUES</option></select></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>MOVIMIENTO</legend>
+      <div class="row"><label for="modo">MODO</label>
+        <select id="modo"><option value="quieto">QUIETO</option><option value="onda">ONDA</option><option value="scan">SCAN</option><option value="temblor">TEMBLOR</option><option value="latido">LATIDO</option></select></div>
+      <div class="row"><label for="vel">VELOCIDAD</label><input type="range" id="vel" min="0" max="200" value="80"><output>80</output></div>
+      <div class="row"><label for="inten">INTENSIDAD</label><input type="range" id="inten" min="0" max="200" value="100"><output>100</output></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>AUDIO — tu música manda</legend>
+      <div class="btnrow">
+        <button id="btnFile">CARGAR MP3/WAV</button>
+        <button id="btnPlay" disabled>▶</button>
+      </div>
+      <div class="btnrow"><button id="btnMic">🎙 EN VIVO (mic / línea)</button></div>
+      <input type="file" id="file" accept="audio/*" hidden>
+      <div class="file" id="fname">sin audio — animación por tiempo</div>
+      <div class="row"><label for="sens">SENSIBILIDAD</label><input type="range" id="sens" min="0" max="300" value="140"><output>140</output></div>
+      <div class="vu" aria-hidden="true">
+        <div class="b" id="vuG"><i></i><span>GRAVE</span></div>
+        <div class="b" id="vuM"><i></i><span>MEDIO</span></div>
+        <div class="b" id="vuA"><i></i><span>AGUDO</span></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>COLOR</legend>
+      <div class="row"><label for="fg">FIGURA</label><input type="color" id="fg" value="#ffb300">
+        <label for="bg" style="width:auto">FONDO</label><input type="color" id="bg" value="#000000"></div>
+      <div class="btnrow"><button id="btnInv">INVERTIR</button><button id="btnRnd">⚡ ALEATORIO</button></div>
+    </fieldset>
+  </aside>
+
+  <div class="stage"><canvas id="cv" width="1080" height="1080"></canvas></div>
+</main>
+
+<video id="vid" class="hide" muted playsinline loop></video>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const off = document.createElement('canvas'), octx = off.getContext('2d');           // máscara de texto
+const tiny = document.createElement('canvas'), tctx = tiny.getContext('2d',{willReadFrequently:true}); // buffer halftone
+const vid = $('vid');
+let imgEl = null;
+
+const P = { srcMode:'texto', txt:'S', font:'Impact', size:78, dens:22, thick:90, eje:'V',
+            modo:'onda', vel:80, inten:100, sens:140, fg:'#ffb300', bg:'#000000',
+            niveles:7, umbral:12, neg:false };
+
+let cells = [], paused = false, t = 0, last = performance.now();
+
+/* ── modo TEXTO: máscara de la letra ── */
+function rebuild(){
+  if(P.srcMode !== 'texto') return;
+  const W = cv.width, H = cv.height;
+  off.width = W; off.height = H;
+  octx.clearRect(0,0,W,H);
+  octx.fillStyle = '#fff';
+  octx.textAlign = 'center'; octx.textBaseline = 'middle';
+  const raw = P.txt.split('\\n').filter(l=>l.length);
+  const lines = raw.length ? raw : ['S'];
+  const fs = H * P.size/100 / lines.length;
+  octx.font = `900 ${fs}px "${P.font}", sans-serif`;
+  const lh = fs*1.0, y0 = H/2 - lh*(lines.length-1)/2;
+  lines.forEach((l,i)=> octx.fillText(l, W/2, y0 + i*lh));
+  const img = octx.getImageData(0,0,W,H).data;
+  cells = [];
+  const c = P.dens;
+  for(let y=c/2; y<H; y+=c) for(let x=c/2; x<W; x+=c){
+    if(img[((y|0)*W + (x|0))*4 + 3] > 100) cells.push({x, y, v:1, r: Math.random()*Math.PI*2});
+  }
+}
+
+/* ── modo MEDIA/CAM: brillo → tamaño (halftone) ── */
+function mediaSource(){
+  if(P.srcMode==='media') return (imgEl && imgEl.complete) ? imgEl : (vid.readyState>=2 ? vid : null);
+  if(P.srcMode==='cam')   return vid.readyState>=2 ? vid : null;
+  return null;
+}
+function sampleMedia(){
+  const src = mediaSource(); if(!src){ cells=[]; return; }
+  const W=cv.width, H=cv.height, c=P.dens;
+  const gw = Math.max(2, Math.round(W/c)), gh = Math.max(2, Math.round(H/c));
+  tiny.width=gw; tiny.height=gh;
+  const sw = src.videoWidth||src.naturalWidth, sh = src.videoHeight||src.naturalHeight;
+  if(!sw||!sh){ cells=[]; return; }
+  const s = Math.max(gw/sw, gh/sh);                      // cover-crop
+  tctx.drawImage(src, (gw-sw*s)/2, (gh-sh*s)/2, sw*s, sh*s);
+  const d = tctx.getImageData(0,0,gw,gh).data;
+  cells = [];
+  const N = P.niveles, cut = P.umbral/100;
+  for(let gy=0; gy<gh; gy++) for(let gx=0; gx<gw; gx++){
+    const i=(gy*gw+gx)*4;
+    let b=(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114)/255;
+    if(P.neg) b = 1-b;
+    if(b <= cut) continue;
+    const q = Math.ceil(b*N)/N;                          // cuantizar en N niveles
+    cells.push({x: gx*c + c/2, y: gy*c + c/2, v:q, r:(gx*7+gy*13)%6.28});
+  }
+}
+
+/* ── audio ── */
+let actx=null, analyser=null, srcNode=null, recDest=null, freq=null;
+const audioEl = new Audio(); audioEl.loop = true;
+let bass=0, mid=0, high=0;
+function initAudio(){
+  if(actx) return;
+  actx = new (window.AudioContext||window.webkitAudioContext)();
+  analyser = actx.createAnalyser();
+  analyser.fftSize = 1024; analyser.smoothingTimeConstant = 0.7;
+  srcNode = actx.createMediaElementSource(audioEl);
+  recDest = actx.createMediaStreamDestination();
+  srcNode.connect(analyser);
+  analyser.connect(actx.destination);
+  analyser.connect(recDest);
+  freq = new Uint8Array(analyser.frequencyBinCount);
+}
+function readBands(){
+  if(!analyser || (!micOn && audioEl.paused)){ bass*=0.94; mid*=0.94; high*=0.94; return; }
+  analyser.getByteFrequencyData(freq);
+  const avg=(a,b)=>{let s=0; for(let i=a;i<b;i++) s+=freq[i]; return s/(b-a)/255;};
+  const k = P.sens/100, lerp=(o,n)=>o+(n-o)*0.35;
+  bass = lerp(bass, Math.min(1, avg(1,9)  *1.25*k));
+  mid  = lerp(mid,  Math.min(1, avg(9,64) *1.6 *k));
+  high = lerp(high, Math.min(1, avg(64,300)*2.2*k));
+}
+
+/* ── render ── */
+function draw(now){
+  const dt = Math.min(0.05,(now-last)/1000); last = now;
+  if(!paused) t += dt * (0.3 + P.vel/60);
+  readBands();
+  $('vuG').firstElementChild.style.height = (bass*100)+'%';
+  $('vuM').firstElementChild.style.height = (mid *100)+'%';
+  $('vuA').firstElementChild.style.height = (high*100)+'%';
+
+  if(P.srcMode!=='texto' && !paused) sampleMedia();
+
+  const W=cv.width, H=cv.height, c=P.dens;
+  ctx.fillStyle = P.bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = P.fg;
+  const amp = P.inten/100, th = P.thick/100;
+  const scanP = (t*0.25) % 1.3 - 0.15;
+
+  for(const cl of cells){
+    const nx = cl.x/W, ny = cl.y/H;
+    let m;
+    switch(P.modo){
+      case 'quieto':  m = 1; break;
+      case 'onda':    m = 0.5 + 0.5*Math.sin(nx*9 + ny*4 + t*2.4); break;
+      case 'scan':  { const d2 = Math.abs(nx - scanP); m = Math.max(0, 1 - d2*7); break; }
+      case 'temblor': m = 0.35 + 0.65*Math.abs(Math.sin(cl.r + t*7 + Math.sin(cl.r*13)*3)); break;
+      default:        m = 0.5 + 0.5*Math.sin(t*3.2); // latido
+    }
+    let v = cl.v * (P.modo==='quieto' ? 1 : (0.25 + 0.75*m*amp));
+    v = v * (1 + bass*1.05);                    // GRAVE empuja el tamaño
+    v += mid * 0.35 * Math.sin(ny*14 + t*5);    // MEDIO ondula
+    v = Math.max(0.05, Math.min(1.9, v));
+    const j = high*c*0.9;                       // AGUDO tiembla
+    const dx = j ? (Math.random()-0.5)*j : 0, dy = j ? (Math.random()-0.5)*j : 0;
+    const x = cl.x+dx, y = cl.y+dy;
+    if(P.eje==='V'){ const h=c*v*1.5, w=c*0.55*th; ctx.fillRect(x-w/2, y-h/2, w, h); }
+    else if(P.eje==='H'){ const w=c*v*1.5, h=c*0.55*th; ctx.fillRect(x-w/2, y-h/2, w, h); }
+    else if(P.eje==='P'){ ctx.beginPath(); ctx.arc(x, y, Math.max(0.4, c*0.5*v*th), 0, 7); ctx.fill(); }
+    else { const s=c*v*th; ctx.fillRect(x-s/2, y-s/2, s, s); }
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ── controles ── */
+function bind(id, key, num, needsRebuild){
+  const el = $(id);
+  el.addEventListener('input', ()=>{
+    P[key] = num ? +el.value : el.value;
+    const o = el.parentElement.querySelector('output'); if(o) o.textContent = el.value;
+    if(needsRebuild) rebuild();
+  });
+}
+bind('txt','txt',false,true); bind('font','font',false,true); bind('size','size',true,true);
+bind('dens','dens',true,true); bind('thick','thick',true); bind('eje','eje');
+bind('modo','modo'); bind('vel','vel',true); bind('inten','inten',true);
+bind('sens','sens',true); bind('fg','fg'); bind('bg','bg');
+bind('niveles','niveles',true); bind('umbral','umbral',true);
+
+let camStream = null;
+$('srcMode').addEventListener('change', async e=>{
+  P.srcMode = e.target.value;
+  $('grpTexto').classList.toggle('hide', P.srcMode!=='texto');
+  $('grpMedia').classList.toggle('hide', P.srcMode==='texto');
+  if(camStream){ camStream.getTracks().forEach(tr=>tr.stop()); camStream=null; }
+  if(P.srcMode==='texto'){ P.modo='onda'; $('modo').value='onda'; rebuild(); return; }
+  P.modo='quieto'; $('modo').value='quieto';   // media parte quieta: la imagen ES el movimiento
+  if(P.srcMode==='cam'){
+    try{
+      camStream = await navigator.mediaDevices.getUserMedia({video:true});
+      vid.srcObject = camStream; vid.play();
+      $('mname').textContent = '📷 webcam activa';
+    }catch(err){
+      $('mname').textContent = '⚠ webcam bloqueada (file:// no la permite — usar el Artifact web o cargar un video)';
+    }
+  }
+});
+$('btnMedia').onclick = ()=> $('mediaFile').click();
+$('mediaFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const url = URL.createObjectURL(f);
+  if(f.type.startsWith('video')){
+    imgEl = null; vid.srcObject = null; vid.src = url; vid.play();
+  } else {
+    vid.pause(); vid.removeAttribute('src');
+    imgEl = new Image(); imgEl.src = url;
+  }
+  $('mname').textContent = '🎞 ' + f.name;
+});
+$('aspect').addEventListener('change', e=>{
+  const [w,h] = e.target.value.split('x').map(Number);
+  cv.width=w; cv.height=h; rebuild();
+});
+$('btnInv').onclick = ()=>{ const f=P.fg; P.fg=P.bg; P.bg=f; $('fg').value=P.fg; $('bg').value=P.bg; };
+$('btnNeg').onclick = e=>{ P.neg=!P.neg; e.currentTarget.classList.toggle('on',P.neg); };
+$('btnPause').onclick = e=>{ paused=!paused; e.currentTarget.textContent = paused?'▶ SEGUIR':'⏸ PAUSA'; };
+
+const crudas = ['#ffb300','#ff4438','#e8e6e0','#00e5a0','#4db2ff','#ff7ab6','#c8ff00'];
+$('btnRnd').onclick = ()=>{
+  const r=(a,b)=>a+Math.random()*(b-a)|0, pick=a=>a[Math.random()*a.length|0];
+  $('dens').value = P.dens = r(8,44); $('thick').value = P.thick = r(30,200);
+  $('vel').value = P.vel = r(30,190);  $('inten').value = P.inten = r(60,200);
+  $('eje').value = P.eje = pick(['V','H','P','B']);
+  $('modo').value = P.modo = P.srcMode==='texto' ? pick(['onda','scan','temblor','latido']) : pick(['quieto','quieto','onda','temblor']);
+  P.fg = pick(crudas); P.bg = Math.random()<0.25 ? pick(crudas) : '#000000';
+  if(P.bg===P.fg) P.bg='#000000';
+  $('fg').value=P.fg; $('bg').value=P.bg;
+  document.querySelectorAll('aside output').forEach(o=>{
+    const i=o.parentElement.querySelector('input'); if(i) o.textContent=i.value;
+  });
+  rebuild();
+};
+
+/* audio UI */
+$('btnFile').onclick = ()=> $('file').click();
+$('file').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  initAudio();
+  audioEl.src = URL.createObjectURL(f);
+  $('fname').textContent = '♪ ' + f.name;
+  $('btnPlay').disabled = false;
+  actx.resume(); audioEl.play(); $('btnPlay').textContent='⏸'; $('btnPlay').classList.add('on');
+});
+$('btnPlay').onclick = e=>{
+  if(audioEl.paused){ actx.resume(); audioEl.play(); e.currentTarget.textContent='⏸'; e.currentTarget.classList.add('on'); }
+  else { audioEl.pause(); e.currentTarget.textContent='▶'; e.currentTarget.classList.remove('on'); }
+};
+
+/* entrada en vivo: mic o línea de la mesa — para DJ set / fiesta */
+let micStream=null, micSrc=null, micOn=false;
+$('btnMic').onclick = async e=>{
+  initAudio(); await actx.resume();
+  const b = e.currentTarget;
+  if(micOn){
+    micSrc.disconnect(); micStream.getTracks().forEach(tr=>tr.stop());
+    micOn=false; analyser.connect(actx.destination);
+    b.classList.remove('on'); $('fname').textContent='entrada en vivo apagada';
+    return;
+  }
+  try{
+    micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}});
+    micSrc = actx.createMediaStreamSource(micStream);
+    audioEl.pause(); $('btnPlay').textContent='▶'; $('btnPlay').classList.remove('on');
+    try{ analyser.disconnect(actx.destination); }catch(_){/* el sonido lo pone la sala, no el navegador */}
+    micSrc.connect(analyser);
+    micOn=true; b.classList.add('on');
+    $('fname').textContent='🎙 escuchando la sala (subir SENSIBILIDAD si reacciona poco)';
+  }catch(err){
+    $('fname').textContent='⚠ entrada bloqueada (file:// no la permite — usar el Artifact web)';
+  }
+};
+
+/* export */
+$('btnPng').onclick = ()=>{
+  const a = document.createElement('a');
+  a.download = 'pulso.png'; a.href = cv.toDataURL('image/png'); a.click();
+};
+let rec=null, chunks=[];
+$('btnRec').onclick = e=>{
+  const b = e.currentTarget;
+  if(rec && rec.state==='recording'){ rec.stop(); return; }
+  const stream = cv.captureStream(30);
+  if(recDest && !audioEl.paused) recDest.stream.getAudioTracks().forEach(tr=>stream.addTrack(tr));
+  const mime = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(m=>MediaRecorder.isTypeSupported(m))||'';
+  rec = new MediaRecorder(stream, mime?{mimeType:mime}:{});
+  chunks=[];
+  rec.ondataavailable = ev=>{ if(ev.data.size) chunks.push(ev.data); };
+  rec.onstop = ()=>{
+    const a=document.createElement('a');
+    a.download='pulso.webm'; a.href=URL.createObjectURL(new Blob(chunks,{type:'video/webm'})); a.click();
+    b.classList.remove('on'); b.textContent='● REC';
+  };
+  rec.start(); b.classList.add('on'); b.textContent='■ CORTAR';
+};
+
+rebuild();
+requestAnimationFrame(draw);
+</script>
+<div style="position:fixed;bottom:8px;right:12px;font:11px Consolas,monospace;letter-spacing:.25em;color:#666;z-index:9999;pointer-events:none">ZiR</div>
