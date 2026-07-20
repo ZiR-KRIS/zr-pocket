@@ -5,6 +5,7 @@
     --vu:#ffb300; --peak:#ff4438;
   }
   *{box-sizing:border-box; margin:0}
+  html{overflow:hidden}
   html,body{height:100%}
   body{
     background:var(--bg); color:var(--ink);
@@ -21,9 +22,9 @@
   header .spacer{flex:1}
   main{flex:1; display:flex; min-height:0}
   aside{
-    width:270px; min-width:270px; overflow-y:auto; padding:14px;
+    width:270px; min-width:270px; overflow-y:auto; overflow-x:hidden; padding:14px;
     border-right:1px solid var(--line); background:var(--panel);
-    display:flex; flex-direction:column; gap:14px;
+    display:flex; flex-direction:column; gap:14px; font-size:12px;
   }
   fieldset{border:1px solid var(--line); padding:10px 10px 12px}
   legend{padding:0 6px; font-size:10px; letter-spacing:.22em; color:var(--vu)}
@@ -55,12 +56,27 @@
   canvas#cv{max-width:100%; max-height:100%; border:1px solid var(--line); background:#000}
   .file{font-size:11px; color:var(--dim); margin-top:8px; word-break:break-all}
   .hide{display:none !important}
-  @media (max-width:760px){ main{flex-direction:column} aside{width:100%; min-width:0; max-height:45%} }
+  @media (max-height:820px){
+    aside{gap:8px}
+    fieldset{padding:6px 8px 8px}
+    .row{margin-top:5px}
+    .vu{height:30px}
+  }
+  @media (max-height:680px){
+    body{font-size:12px}
+    .row label{width:72px}
+    button{padding:4px 8px}
+  }
+  /* auto-fit: la clase la pone JS midiendo desborde real (inmune a DPI/zoom/tamaño) */
+  aside.two-col{width:520px; min-width:520px; display:grid; grid-template-columns:1fr 1fr; gap:8px; align-content:start}
+  aside.two-col > fieldset{min-width:0}
+  aside.two-col > fieldset:first-child{grid-row:span 2}
+  @media (max-width:760px){ main{flex-direction:column} aside{width:100% !important; min-width:0; max-height:45%; display:flex} }
 </style>
 
 <header>
   <h1>PUL<em>SO</em></h1>
-  <span class="tag">lab de tipografía reactiva · v2 halftone · ZiR</span>
+  <span class="tag">lab de tipografía reactiva · v3 · ZiR</span>
   <span class="spacer"></span>
   <button id="btnPause">⏸ PAUSA</button>
   <button id="btnPng">PNG ↓</button>
@@ -85,8 +101,14 @@
             <option>Impact</option><option>Arial Black</option>
             <option>Haettenschweiler</option><option>Georgia</option>
             <option>Courier New</option><option>Verdana</option>
+            <option>Bahnschrift</option><option>Segoe UI Black</option>
+            <option>Arial Narrow</option><option>Times New Roman</option>
+            <option>Garamond</option><option>Franklin Gothic Heavy</option>
+            <option>Consolas</option><option>Comic Sans MS</option>
           </select></div>
         <div class="row"><label for="size">TAMAÑO</label><input type="range" id="size" min="20" max="95" value="78"><output>78</output></div>
+        <div class="btnrow"><button id="btnFont">CARGAR FUENTE (.ttf/.otf)</button></div>
+        <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
       </div>
       <div id="grpMedia" class="hide">
         <div class="btnrow"><button id="btnMedia">CARGAR IMG/VIDEO</button></div>
@@ -105,15 +127,22 @@
       <div class="row"><label for="dens">DENSIDAD</label><input type="range" id="dens" min="6" max="48" value="22"><output>22</output></div>
       <div class="row"><label for="thick">GROSOR</label><input type="range" id="thick" min="10" max="200" value="90"><output>90</output></div>
       <div class="row"><label for="eje">FORMA</label>
-        <select id="eje"><option value="V">BARRAS ↕</option><option value="H">BARRAS ↔</option><option value="P">PUNTOS</option><option value="B">BLOQUES</option></select></div>
+        <select id="eje"><option value="V">BARRAS ↕</option><option value="H">BARRAS ↔</option><option value="P">PUNTOS</option><option value="B">BLOQUES</option><option value="D">LÍNEA ⟋</option><option value="X">CRUZ</option><option value="O">ANILLO</option><option value="T">TRIÁNGULO</option><option value="I">IMAGEN</option></select></div>
+      <div id="grpShape" class="hide">
+        <div class="btnrow"><button id="btnShape">CARGAR FORMA (PNG)</button></div>
+        <input type="file" id="shapeFile" accept="image/*" hidden>
+        <div class="file" id="shapename">sin forma cargada</div>
+      </div>
     </fieldset>
 
     <fieldset>
       <legend>MOVIMIENTO</legend>
       <div class="row"><label for="modo">MODO</label>
-        <select id="modo"><option value="quieto">QUIETO</option><option value="onda">ONDA</option><option value="scan">SCAN</option><option value="temblor">TEMBLOR</option><option value="latido">LATIDO</option></select></div>
+        <select id="modo"><option value="quieto">QUIETO</option><option value="onda">ONDA</option><option value="scan">SCAN</option><option value="temblor">TEMBLOR</option><option value="latido">LATIDO</option><option value="radial">RADIAL</option><option value="espiral">ESPIRAL</option><option value="cascada">CASCADA</option><option value="remolino">REMOLINO</option><option value="marea">MAREA</option><option value="ruido">RUIDO</option></select></div>
       <div class="row"><label for="vel">VELOCIDAD</label><input type="range" id="vel" min="0" max="200" value="80"><output>80</output></div>
       <div class="row"><label for="inten">INTENSIDAD</label><input type="range" id="inten" min="0" max="200" value="100"><output>100</output></div>
+      <div class="row"><label for="esc">ESCALA</label><input type="range" id="esc" min="30" max="300" value="100"><output>100</output></div>
+      <div class="row"><label for="dir">DIRECCIÓN</label><input type="range" id="dir" min="0" max="360" value="0"><output>0</output></div>
     </fieldset>
 
     <fieldset>
@@ -139,6 +168,18 @@
         <label for="bg" style="width:auto">FONDO</label><input type="color" id="bg" value="#000000"></div>
       <div class="btnrow"><button id="btnInv">INVERTIR</button><button id="btnRnd">⚡ ALEATORIO</button></div>
     </fieldset>
+
+    <fieldset>
+      <legend>MEMORIA — para el vivo</legend>
+      <div class="btnrow">
+        <button id="goA" disabled>▸ A</button>
+        <button id="goB" disabled>▸ B</button>
+      </div>
+      <div class="btnrow">
+        <button id="saveA">GUARDAR EN A</button>
+        <button id="saveB">GUARDAR EN B</button>
+      </div>
+    </fieldset>
   </aside>
 
   <div class="stage"><canvas id="cv" width="1080" height="1080"></canvas></div>
@@ -154,9 +195,23 @@ const off = document.createElement('canvas'), octx = off.getContext('2d');      
 const tiny = document.createElement('canvas'), tctx = tiny.getContext('2d',{willReadFrequently:true}); // buffer halftone
 const vid = $('vid');
 let imgEl = null;
+const shapeTint = document.createElement('canvas'), stctx = shapeTint.getContext('2d');
+let shapeSrc = null, shapeImg = null, shapeFg = null;
+function retintShape(){
+  if(!shapeSrc) return;
+  const S = 128;
+  shapeTint.width = S; shapeTint.height = S;
+  stctx.clearRect(0,0,S,S);
+  stctx.drawImage(shapeSrc, 0, 0, S, S);
+  stctx.globalCompositeOperation = 'source-in';
+  stctx.fillStyle = P.fg;
+  stctx.fillRect(0,0,S,S);
+  stctx.globalCompositeOperation = 'source-over';
+  shapeImg = shapeTint; shapeFg = P.fg;
+}
 
 const P = { srcMode:'texto', txt:'S', font:'Impact', size:78, dens:22, thick:90, eje:'V',
-            modo:'onda', vel:80, inten:100, sens:140, fg:'#ffb300', bg:'#000000',
+            modo:'onda', vel:80, inten:100, esc:100, dir:0, sens:140, fg:'#ffb300', bg:'#000000',
             niveles:7, umbral:12, neg:false };
 
 let cells = [], paused = false, t = 0, last = performance.now();
@@ -250,19 +305,27 @@ function draw(now){
 
   const W=cv.width, H=cv.height, c=P.dens;
   ctx.fillStyle = P.bg; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle = P.fg;
+  ctx.fillStyle = P.fg; ctx.strokeStyle = P.fg;
   const amp = P.inten/100, th = P.thick/100;
   const scanP = (t*0.25) % 1.3 - 0.15;
+  const esc = P.esc/100, dRad = P.dir*Math.PI/180, cd = Math.cos(dRad), sd = Math.sin(dRad);
 
   for(const cl of cells){
     const nx = cl.x/W, ny = cl.y/H;
     let m;
     switch(P.modo){
+      // u/w = coordenadas rotadas por DIRECCIÓN; esc = ESCALA del patrón
       case 'quieto':  m = 1; break;
-      case 'onda':    m = 0.5 + 0.5*Math.sin(nx*9 + ny*4 + t*2.4); break;
-      case 'scan':  { const d2 = Math.abs(nx - scanP); m = Math.max(0, 1 - d2*7); break; }
-      case 'temblor': m = 0.35 + 0.65*Math.abs(Math.sin(cl.r + t*7 + Math.sin(cl.r*13)*3)); break;
-      default:        m = 0.5 + 0.5*Math.sin(t*3.2); // latido
+      case 'onda':  { const u=(nx-0.5)*cd+(ny-0.5)*sd, w=-(nx-0.5)*sd+(ny-0.5)*cd; m = 0.5 + 0.5*Math.sin((u*9 + w*4)*esc + t*2.4); break; }
+      case 'scan':  { const u=(nx-0.5)*cd+(ny-0.5)*sd+0.5; const d2 = Math.abs(u - scanP); m = Math.max(0, 1 - d2*7*esc); break; }
+      case 'temblor': m = 0.35 + 0.65*Math.abs(Math.sin(cl.r + t*7*esc + Math.sin(cl.r*13)*3)); break;
+      case 'radial': { const d3 = Math.hypot(nx-0.5, ny-0.5); m = 0.5 + 0.5*Math.sin(d3*14*esc - t*3.5); break; }
+      case 'espiral': { const ang = Math.atan2(ny-0.5, nx-0.5), d4 = Math.hypot(nx-0.5, ny-0.5); m = 0.5 + 0.5*Math.sin(ang*5 + d4*12*esc - t*3); break; }
+      case 'cascada': { const w=-(nx-0.5)*sd+(ny-0.5)*cd; m = 0.5 + 0.5*Math.sin(w*12*esc - t*4.2); break; }
+      case 'remolino': { const ang = Math.atan2(ny-0.5, nx-0.5), d5 = Math.hypot(nx-0.5, ny-0.5); m = Math.max(0, 0.15 + 0.85*Math.sin(ang*Math.max(1,Math.round(3*esc)) - t*3 + d5*3)); break; }
+      case 'marea': { const u=(nx-0.5)*cd+(ny-0.5)*sd; m = 0.5 + 0.5*Math.sin(u*6*esc - t*2.8); break; }
+      case 'ruido': m = 0.5 + 0.5*Math.sin(cl.r*7 + t*1.6*esc + Math.sin(t*0.7 + cl.r*3)*2); break;
+      default:        m = 0.5 + 0.5*Math.sin(t*3.2*esc); // latido
     }
     let v = cl.v * (P.modo==='quieto' ? 1 : (0.25 + 0.75*m*amp));
     v = v * (1 + bass*1.05);                    // GRAVE empuja el tamaño
@@ -274,6 +337,14 @@ function draw(now){
     if(P.eje==='V'){ const h=c*v*1.5, w=c*0.55*th; ctx.fillRect(x-w/2, y-h/2, w, h); }
     else if(P.eje==='H'){ const w=c*v*1.5, h=c*0.55*th; ctx.fillRect(x-w/2, y-h/2, w, h); }
     else if(P.eje==='P'){ ctx.beginPath(); ctx.arc(x, y, Math.max(0.4, c*0.5*v*th), 0, 7); ctx.fill(); }
+    else if(P.eje==='D'){ ctx.save(); ctx.translate(x,y); ctx.rotate(-Math.PI/4); ctx.fillRect(-c*v*0.75, -c*0.275*th, c*v*1.5, c*0.55*th); ctx.restore(); }
+    else if(P.eje==='X'){ const l=c*v*1.4, w=c*0.3*th; ctx.fillRect(x-l/2, y-w/2, l, w); ctx.fillRect(x-w/2, y-l/2, w, l); }
+    else if(P.eje==='O'){ ctx.beginPath(); ctx.arc(x, y, Math.max(0.4, c*0.5*v), 0, 7); ctx.lineWidth = Math.max(1, c*0.22*th); ctx.stroke(); }
+    else if(P.eje==='T'){ const s=c*v*1.3*th; ctx.beginPath(); ctx.moveTo(x, y-s/2); ctx.lineTo(x+s/2, y+s/2); ctx.lineTo(x-s/2, y+s/2); ctx.closePath(); ctx.fill(); }
+    else if(P.eje==='I'){
+      if(!shapeImg){ const s=c*v*th; ctx.fillRect(x-s/2, y-s/2, s, s); }
+      else { if(shapeFg!==P.fg) retintShape(); const s=c*v*1.5*th; ctx.drawImage(shapeImg, x-s/2, y-s/2, s, s); }
+    }
     else { const s=c*v*th; ctx.fillRect(x-s/2, y-s/2, s, s); }
   }
   requestAnimationFrame(draw);
@@ -291,8 +362,36 @@ function bind(id, key, num, needsRebuild){
 bind('txt','txt',false,true); bind('font','font',false,true); bind('size','size',true,true);
 bind('dens','dens',true,true); bind('thick','thick',true); bind('eje','eje');
 bind('modo','modo'); bind('vel','vel',true); bind('inten','inten',true);
+bind('esc','esc',true); bind('dir','dir',true);
 bind('sens','sens',true); bind('fg','fg'); bind('bg','bg');
 bind('niveles','niveles',true); bind('umbral','umbral',true);
+
+$('eje').addEventListener('change', ()=>{ $('grpShape').classList.toggle('hide', P.eje!=='I'); });
+
+$('btnFont').onclick = ()=> $('fontFile').click();
+$('fontFile').addEventListener('change', async e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const buf = await f.arrayBuffer();
+  const family = 'PulsoCustom-'+Date.now();
+  const face = new FontFace(family, buf);
+  await face.load(); document.fonts.add(face);
+  const label = f.name.replace(/\.[^.]+$/,'').toUpperCase();
+  const opt = document.createElement('option');
+  opt.value = family; opt.textContent = label;
+  $('font').appendChild(opt);
+  $('font').value = family;
+  P.font = family; rebuild();
+});
+
+$('btnShape').onclick = ()=> $('shapeFile').click();
+$('shapeFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const url = URL.createObjectURL(f);
+  const img = new Image();
+  img.onload = ()=>{ shapeSrc = img; retintShape(); };
+  img.src = url;
+  $('shapename').textContent = '🖼 ' + f.name;
+});
 
 let camStream = null;
 $('srcMode').addEventListener('change', async e=>{
@@ -337,8 +436,10 @@ $('btnRnd').onclick = ()=>{
   const r=(a,b)=>a+Math.random()*(b-a)|0, pick=a=>a[Math.random()*a.length|0];
   $('dens').value = P.dens = r(8,44); $('thick').value = P.thick = r(30,200);
   $('vel').value = P.vel = r(30,190);  $('inten').value = P.inten = r(60,200);
-  $('eje').value = P.eje = pick(['V','H','P','B']);
-  $('modo').value = P.modo = P.srcMode==='texto' ? pick(['onda','scan','temblor','latido']) : pick(['quieto','quieto','onda','temblor']);
+  $('eje').value = P.eje = pick(['V','H','P','B','D','X','O','T']);
+  $('grpShape').classList.toggle('hide', P.eje!=='I');
+  $('modo').value = P.modo = P.srcMode==='texto' ? pick(['onda','scan','temblor','latido','radial','espiral','cascada','remolino','marea','ruido']) : pick(['quieto','quieto','onda','temblor','radial','marea']);
+  $('esc').value = P.esc = r(50,220); $('dir').value = P.dir = r(0,360);
   P.fg = pick(crudas); P.bg = Math.random()<0.25 ? pick(crudas) : '#000000';
   if(P.bg===P.fg) P.bg='#000000';
   $('fg').value=P.fg; $('bg').value=P.bg;
@@ -410,7 +511,70 @@ $('btnRec').onclick = e=>{
   rec.start(); b.classList.add('on'); b.textContent='■ CORTAR';
 };
 
+/* ── auto-fit del panel: medir desborde REAL y ajustar (inmune a DPI/zoom/resolución) ── */
+const aside = document.querySelector('aside');
+let fitting = false;
+function fitPanel(){
+  if(fitting) return;
+  fitting = true;
+  aside.classList.remove('two-col'); aside.style.zoom='';
+  const overflows = ()=> aside.scrollHeight > aside.clientHeight + 2;
+  if(!matchMedia('(max-width:760px)').matches){
+    if(overflows() && document.body.clientWidth >= 900) aside.classList.add('two-col');
+    if(overflows()){
+      const z = Math.max(0.62, aside.clientHeight / aside.scrollHeight);
+      aside.style.zoom = z.toFixed(3);        // último recurso: encoger el panel hasta que entre
+    }
+  }
+  requestAnimationFrame(()=>{ fitting = false; });
+}
+addEventListener('resize', fitPanel);
+aside.addEventListener('change', ()=> requestAnimationFrame(fitPanel));   // grupos que se muestran/ocultan
+new MutationObserver(()=>{ if(!fitting) requestAnimationFrame(fitPanel); })
+  .observe(aside, {subtree:true, attributes:true, attributeFilter:['class']});
+
+/* ── MEMORIA A/B: slots de patrón para sesiones en vivo (persisten en localStorage) ── */
+const SLOT_KEYS = ['txt','font','size','dens','thick','eje','modo','vel','inten','esc','dir','sens','fg','bg','niveles','umbral','neg'];
+function saveSlot(k){
+  const s = {}; SLOT_KEYS.forEach(key=> s[key]=P[key]);
+  try{ localStorage.setItem('pulso_slot_'+k, JSON.stringify(s)); }catch(_){/* modo incógnito: vive solo en la sesión */}
+  slots[k] = s; refreshSlotButtons();
+}
+function loadSlot(k){
+  const s = slots[k]; if(!s) return;
+  SLOT_KEYS.forEach(key=> P[key]=s[key]);
+  // sincronizar UI con el patrón cargado
+  ['txt','font','size','dens','thick','eje','modo','vel','inten','esc','dir','sens','fg','bg','niveles','umbral'].forEach(id=>{
+    const el = $(id); if(!el) return; el.value = P[id];
+    const o = el.parentElement.querySelector('output'); if(o) o.textContent = el.value;
+  });
+  $('btnNeg').classList.toggle('on', P.neg);
+  if($('grpShape')) $('grpShape').classList.toggle('hide', P.eje!=='I');
+  rebuild(); requestAnimationFrame(fitPanel);
+}
+const slots = {};
+['a','b'].forEach(k=>{
+  try{ const raw = localStorage.getItem('pulso_slot_'+k); if(raw) slots[k]=JSON.parse(raw); }catch(_){}
+});
+function refreshSlotButtons(){
+  $('goA').disabled = !slots.a; $('goB').disabled = !slots.b;
+  $('goA').classList.toggle('on', !!slots.a); $('goB').classList.toggle('on', !!slots.b);
+}
+$('saveA').onclick = ()=> saveSlot('a');
+$('saveB').onclick = ()=> saveSlot('b');
+$('goA').onclick = ()=> loadSlot('a');
+$('goB').onclick = ()=> loadSlot('b');
+addEventListener('keydown', e=>{
+  if(e.target.tagName==='INPUT' || e.target.tagName==='SELECT') return;   // no interferir al tipear
+  if(e.key==='1') loadSlot('a');
+  if(e.key==='2') loadSlot('b');
+});
+refreshSlotButtons();
+
 rebuild();
 requestAnimationFrame(draw);
+fitPanel();
+addEventListener('load', fitPanel);
+setTimeout(fitPanel, 400); setTimeout(fitPanel, 1200);
 </script>
 <div style="position:fixed;bottom:8px;right:12px;font:11px Consolas,monospace;letter-spacing:.25em;color:#666;z-index:9999;pointer-events:none">ZiR</div>
