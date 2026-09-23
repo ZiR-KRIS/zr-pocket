@@ -198,3 +198,8 @@ nav{
 .doc-content p{margin:0 0 10px}
 .doc-content p:last-child{margin-bottom:0}
 #doc-body img{max-width:100%; border-radius:8px}
+
+/* DÓNDE VAMOS: detalle de cada tarjeta */
+.card ul,.card ol{padding-left:18px; margin:6px 0}
+.card li{font-size:.84rem; line-height:1.45; margin-bottom:4px}
+.card code{overflow-wrap:anywhere; word-break:break-word}

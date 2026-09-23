@@ -147,17 +147,46 @@ function renderParrafoExpandible(contenedor, texto, limite = 260){
   contenedor.appendChild(btn);
 }
 
-/* ================= MODO ACTUAL: tarjetas + chips ================= */
+/* ================= DÓNDE VAMOS: tarjetas + chips ================= */
+// Fuente única del estado (regla 1-ago-2026): el bloque entre los marcadores DONDE-VAMOS
+// de ESTADO_ACTUAL.md — el mismo que el hook inyecta al abrir sesión. HOY y PROD leen de acá.
+const DV_INI = '<!-- DONDE-VAMOS:INICIO -->';
+const DV_FIN = '<!-- DONDE-VAMOS:FIN -->';
 
-// Root-level: línea "- texto" o "N. texto" (el MODO ACTUAL real hoy usa lista numerada).
-function esBulletRaizModo(linea){
-  return /^(-\s|\d+\.\s)/.test(linea);
+// Devuelve {intro, bloques:[{titulo, cuerpo}]} o null si faltan los marcadores.
+function extraerDondeVamos(md){
+  const ini = md.indexOf(DV_INI), fin = md.indexOf(DV_FIN);
+  if(ini === -1 || fin === -1 || fin < ini) return null;
+  const intro = [], bloques = [];
+  for(const l of md.slice(ini + DV_INI.length, fin).split('\n')){
+    if(/^##\s/.test(l)) continue;                       // el título del bloque
+    if(/^\*⚠️/.test(l.trim())) continue;                // aviso de marcadores: es para las sesiones
+    if(/^###\s/.test(l)){ bloques.push({titulo: l.replace(/^###\s+/, '').trim(), lineas: []}); continue; }
+    if(bloques.length) bloques[bloques.length-1].lineas.push(l); else intro.push(l);
+  }
+  return {
+    intro: intro.join('\n').trim(),
+    bloques: bloques.map(b => ({titulo: b.titulo, cuerpo: b.lineas.join('\n').trim()})),
+  };
+}
+
+// En ESTADO_ACTUAL.md se escribe renglón a renglón: un renglón suelto que viene justo después
+// de una viñeta es un párrafo nuevo, no la continuación de la viñeta (markdown lo pegaría).
+function mdDV(md){
+  const out = [];
+  for(const l of md.split('\n')){
+    const prev = out.length ? out[out.length-1] : '';
+    const esLista = x => /^\s*([-*]|\d+\.)\s/.test(x);
+    if(l.trim() && !esLista(l) && !/^\s/.test(l) && esLista(prev)) out.push('');
+    out.push(l);
+  }
+  return marked.parse(out.join('\n'), {breaks: true});
 }
 
 function detectarChipModo(textoPlano){
   const grupos = [
     { cls: 'ok', palabras: ['TERMINADO','CERRADO','LISTO','RESUELTO','OK'] },
-    { cls: 'wait', palabras: ['EN CURSO','EN PROGRESO','HOY','SIGUIENTE'] },
+    { cls: 'wait', palabras: ['EN CURSO','EN PROGRESO','HOY','SIGUIENTE','FOCO'] },
     { cls: 'pause', palabras: ['PAUSA','BLOQUEADO','ESPERANDO','PENDIENTE'] },
   ];
   let mejor = null;
@@ -171,26 +200,28 @@ function detectarChipModo(textoPlano){
   return mejor;
 }
 
-function renderTarjetaModo(bloqueMd, contenedor){
-  const sinMarcador = bloqueMd.replace(/^(-\s|\d+\.\s)/, '');
-  const plano = sinMarcador.replace(/\*\*/g, '');
+// Título "🎬 FRANK — estado": emoji + nombre (h3) + estado (línea chica). El detalle va plegado.
+// Devuelve el nombre del proyecto (sirve de etiqueta para el buzón).
+function renderBloqueDV(bloque, contenedor){
+  const plano = bloque.titulo.replace(/\*\*/g, '');
+  const emojiMatch = plano.match(/^(\p{Extended_Pictographic}+️?)\s*/u);
+  const sinEmoji = emojiMatch ? plano.slice(emojiMatch[0].length) : plano;
+  const corte = sinEmoji.indexOf(' — ');
+  const nombre = corte === -1 ? sinEmoji : sinEmoji.slice(0, corte);
+  const estado = corte === -1 ? '' : sinEmoji.slice(corte + 3);
 
   const card = document.createElement('div');
   card.className = 'card';
   card.style.padding = '10px 12px';
   card.style.marginBottom = '8px';
 
-  const chip = detectarChipModo(plano);
+  const chip = detectarChipModo(estado || nombre);
   if(chip){
     const chipEl = document.createElement('span');
     chipEl.className = `chip ${chip.cls}`;
     chipEl.textContent = chip.palabra;
     card.appendChild(chipEl);
   }
-
-  const emojiMatch = plano.match(/^(\p{Extended_Pictographic}️?)\s*/u);
-  let cuerpoMd = sinMarcador;
-  if(emojiMatch) cuerpoMd = cuerpoMd.replace(emojiMatch[0], '');
 
   const row = document.createElement('div');
   row.style.display = 'flex'; row.style.gap = '8px'; row.style.alignItems = 'flex-start';
@@ -200,49 +231,43 @@ function renderTarjetaModo(bloqueMd, contenedor){
     icoEl.textContent = emojiMatch[1];
     row.appendChild(icoEl);
   }
-
   const cuerpoWrap = document.createElement('div');
   cuerpoWrap.style.flex = '1';
-  const boldMatch = cuerpoMd.match(/^\*\*(.+?)\*\*:?\s*/);
-  let textoCuerpo = cuerpoMd;
-  if(boldMatch){
-    const h3 = document.createElement('h3');
-    h3.textContent = boldMatch[1].replace(/:$/, '');
-    cuerpoWrap.appendChild(h3);
-    textoCuerpo = cuerpoMd.slice(boldMatch[0].length);
+  cuerpoWrap.style.minWidth = '0';
+  const h3 = document.createElement('h3');
+  h3.textContent = nombre;
+  cuerpoWrap.appendChild(h3);
+  if(estado){
+    const p = document.createElement('p');
+    p.style.margin = '0';
+    p.innerHTML = marked.parseInline(estado);
+    cuerpoWrap.appendChild(p);
   }
-  if(textoCuerpo.trim()) renderParrafoExpandible(cuerpoWrap, textoCuerpo, 160);
   row.appendChild(cuerpoWrap);
   card.appendChild(row);
-  contenedor.appendChild(card);
-}
 
-function renderModoActualVisual(seccion, contenedor){
-  contenedor.innerHTML = '';
-  const lineas = seccion.split('\n');
-  const idx = lineas.findIndex(esBulletRaizModo);
-  const introTxt = (idx === -1 ? lineas : lineas.slice(0, idx)).join('\n').trim();
-  if(introTxt) renderParrafoExpandible(contenedor, introTxt);
-
-  if(idx !== -1){
-    const bloques = [];
-    for(let i=idx; i<lineas.length; i++){
-      if(esBulletRaizModo(lineas[i])) bloques.push([lineas[i]]);
-      else if(bloques.length) bloques[bloques.length-1].push(lineas[i]);
-    }
-    bloques.forEach(ls => renderTarjetaModo(ls.join('\n').trim(), contenedor));
+  if(bloque.cuerpo){
+    const det = document.createElement('div');
+    det.style.display = 'none';
+    det.style.marginTop = '8px';
+    det.innerHTML = mdDV(bloque.cuerpo);
+    const btn = document.createElement('button');
+    btn.className = 'copiar';
+    btn.style.marginTop = '6px';
+    btn.textContent = 'ver detalle ▾';
+    btn.addEventListener('click', () => {
+      const abierto = det.style.display !== 'none';
+      det.style.display = abierto ? 'none' : 'block';
+      btn.textContent = abierto ? 'ver detalle ▾' : 'cerrar ▴';
+    });
+    card.appendChild(det);
+    card.appendChild(btn);
   }
-
-  const btn = document.createElement('button');
-  btn.className = 'copiar';
-  btn.textContent = 'ver texto completo ▸';
-  btn.addEventListener('click', () => {
-    document.getElementById('doc-breadcrumb').textContent = 'ESTADO_ACTUAL.md · MODO ACTUAL';
-    document.getElementById('doc-body').innerHTML = marked.parse(seccion);
-    abrirOverlay('overlay-doc');
-  });
-  contenedor.appendChild(btn);
+  contenedor.appendChild(card);
+  return {card, nombre};
 }
+
+const DV_SIN_MARCADORES = '🔺 No se encontró el bloque DÓNDE VAMOS en ESTADO_ACTUAL.md (alguien borró los marcadores). El estado no se puede mostrar hasta repararlo.';
 
 /* ================= HOY ================= */
 async function cargarHoy(){
@@ -253,11 +278,17 @@ async function cargarHoy(){
 
   try{
     const {content} = await GH.getFile('ESTADO_ACTUAL.md');
-    const seccion = extraerSeccion(content, '## MODO ACTUAL');
-    if(!seccion){
-      modoEl.innerHTML = '<p class="error-msg">No se encontró el bloque MODO ACTUAL.</p>';
+    const dv = extraerDondeVamos(content);
+    if(!dv){
+      modoEl.innerHTML = `<p class="error-msg">${DV_SIN_MARCADORES}</p>`;
     }else{
-      renderModoActualVisual(seccion, modoEl);
+      modoEl.innerHTML = '';
+      if(dv.intro){
+        const intro = document.createElement('div');
+        intro.innerHTML = mdDV(dv.intro);
+        modoEl.appendChild(intro);
+      }
+      dv.bloques.forEach(b => renderBloqueDV(b, modoEl));
     }
   }catch(e){
     modoEl.innerHTML = `<p class="error-msg">Error leyendo ESTADO_ACTUAL.md: ${e.message}</p>`;
@@ -280,8 +311,8 @@ async function cargarHoy(){
       chk.addEventListener('change', () => toggleTarea(i, it.text, chk));
       const t = document.createElement('div'); t.className = 't';
       const m = it.text.match(/^(.*?)\s*\((.+)\)\s*$/);
-      if(m){ t.innerHTML = `${escapeHtml(m[1])}<small>${escapeHtml(m[2])}</small>`; }
-      else { t.textContent = it.text; }
+      if(m){ t.innerHTML = `${marked.parseInline(m[1])}<small>${marked.parseInline(m[2])}</small>`; }
+      else { t.innerHTML = marked.parseInline(it.text); }
       div.appendChild(n); div.appendChild(chk); div.appendChild(t);
       tareasEl.appendChild(div);
     });
@@ -523,31 +554,26 @@ async function cargarProd(){
   cont.innerHTML = '<div class="card">Cargando…</div>';
   try{
     const {content} = await GH.getFile('ESTADO_ACTUAL.md');
-    const seccion = extraerSeccion(content, '### Proyectos');
-    const bullets = seccion ? bulletsDeSeccion(seccion) : [];
+    const dv = extraerDondeVamos(content);
     cont.innerHTML = '';
-    if(bullets.length === 0){
-      cont.innerHTML = '<div class="card"><p>No se encontró la sección de proyectos.</p></div>';
-    }
-    bullets.forEach(b => {
-      const card = document.createElement('div'); card.className = 'card';
-      card.innerHTML = marked.parseInline(b);
-
-      const boldMatch = b.match(/\*\*(.+?)\*\*/);
-      const etiqueta = boldMatch ? boldMatch[1] : '';
-      const btnNota = document.createElement('button');
-      btnNota.className = 'copiar';
-      btnNota.textContent = '＋ nota';
-      btnNota.addEventListener('click', () => {
-        document.getElementById('buzon-tag').value = etiqueta;
-        const txt = document.getElementById('buzon-txt');
-        txt.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        txt.focus();
+    if(!dv){
+      cont.innerHTML = `<div class="card"><p class="error-msg">${DV_SIN_MARCADORES}</p></div>`;
+    }else{
+      dv.bloques.forEach(b => {
+        const {card, nombre} = renderBloqueDV(b, cont);
+        const btnNota = document.createElement('button');
+        btnNota.className = 'copiar';
+        btnNota.style.marginLeft = '6px';
+        btnNota.textContent = '＋ nota';
+        btnNota.addEventListener('click', () => {
+          document.getElementById('buzon-tag').value = nombre;
+          const txt = document.getElementById('buzon-txt');
+          txt.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          txt.focus();
+        });
+        card.appendChild(btnNota);
       });
-      card.appendChild(btnNota);
-
-      cont.appendChild(card);
-    });
+    }
   }catch(e){
     cont.innerHTML = `<div class="card"><p class="error-msg">Error leyendo ESTADO_ACTUAL.md: ${e.message}</p></div>`;
   }
