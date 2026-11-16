@@ -106,6 +106,29 @@
      color:var(--accent-glow);font-family:'Share Tech Mono',Consolas,monospace;font-size:11px;letter-spacing:.2em;
      text-transform:uppercase;padding:9px 16px;border-radius:3px;transition:.18s;}
   .btn-tejer:hover{background:rgba(255,60,172,.12);box-shadow:0 0 14px rgba(255,60,172,.3);}
+  .note-pill.clave{border-color:var(--yellow);color:var(--yellow-glow);box-shadow:0 0 12px rgba(245,197,0,.25);}
+  .charnote b.y{color:var(--yellow-glow);}
+  .charnote.vacio{color:#3a3a3a;}
+  .luzbar{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .luzseg{appearance:none;cursor:pointer;border:1px solid var(--line2);border-radius:3px;padding:7px 0 6px;
+     font-family:'Share Tech Mono',Consolas,monospace;font-size:9.5px;letter-spacing:.08em;color:#777;transition:.15s;}
+  .luzseg:hover{color:#fff;border-color:#666;}
+  .luzseg.on{border-color:var(--yellow);color:#fff;box-shadow:0 0 12px rgba(245,197,0,.45);}
+  .luzends{display:flex;justify-content:space-between;font-family:'Share Tech Mono',Consolas,monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);margin-top:6px;}
+  .luznav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+  .luzbtn{appearance:none;cursor:pointer;text-align:left;background:var(--panel2);border:1px solid var(--line2);border-radius:3px;padding:8px 11px;transition:.15s;color:#ccc;
+     font-family:'Rajdhani','Bahnschrift','Arial Narrow',sans-serif;font-weight:600;font-size:14px;line-height:1.25;}
+  .luzbtn:hover{border-color:var(--yellow);color:#fff;}
+  .luzbtn small{display:block;font-family:'Share Tech Mono',Consolas,monospace;font-weight:400;font-size:10px;letter-spacing:.08em;color:var(--dim2);}
+  .luzbtn small b{color:var(--yellow-glow);font-weight:400;}
+  .luzbtn.off{visibility:hidden;}
+  .progs{display:flex;flex-direction:column;gap:6px;}
+  .prog{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border:1px solid var(--line);border-radius:3px;background:var(--panel);padding:8px 12px;}
+  .prog .pn{font-family:'Share Tech Mono',Consolas,monospace;font-size:10.5px;letter-spacing:.06em;color:var(--dim2);}
+  .prog .pa{font-family:'Rajdhani','Bahnschrift','Arial Narrow',sans-serif;font-weight:700;font-size:17px;color:#fff;}
+  .curso{font-family:'Rajdhani','Bahnschrift','Arial Narrow',sans-serif;font-size:14.5px;line-height:1.4;color:#bbb;margin-top:10px;}
+  .curso b{color:#fff;font-weight:700;} .curso .src{font-family:'Share Tech Mono',Consolas,monospace;font-size:9.5px;letter-spacing:.08em;color:var(--dim2);margin:0 6px 0 4px;}
+  .curso.ej{color:#999;} .curso.ojo{color:var(--accent-glow);}
   .firma{margin-top:34px;text-align:center;font-family:'Share Tech Mono',Consolas,monospace;
      font-size:11px;letter-spacing:.35em;color:#555;}
 </style>
@@ -145,37 +168,81 @@ const ROOTS=[
  ['F','F',0,5],['F\u266F','F',1,6],['G','G',0,7],['A\u266D','A',-1,8],['A','A',0,9],
  ['B\u266D','B',-1,10],['B','B',0,11]
 ].map(([name,letter,acc,pc])=>({name,letter,acc,pc}));
+/* DATOS:INICIO — generado desde circulo_datos.js con "node circulo.js sincronizar". No editar acá. */
 const FAMILIES={
- 'Diat\u00f3nica (mayor)':[
-  ['J\u00f3nico (mayor)',[0,2,4,5,7,9,11]],['D\u00f3rico',[0,2,3,5,7,9,10]],
-  ['Frigio',[0,1,3,5,7,8,10]],['Lidio',[0,2,4,6,7,9,11]],['Mixolidio',[0,2,4,5,7,9,10]],
-  ['E\u00f3lico (menor)',[0,2,3,5,7,8,10]],['Locrio',[0,1,3,5,6,8,10]],
+ "Diatónica (mayor)":[
+  ["Jónico (mayor)",[0,2,4,5,7,9,11]],
+  ["Dórico",[0,2,3,5,7,9,10]],
+  ["Frigio",[0,1,3,5,7,8,10]],
+  ["Lidio",[0,2,4,6,7,9,11]],
+  ["Mixolidio",[0,2,4,5,7,9,10]],
+  ["Eólico (menor)",[0,2,3,5,7,8,10]],
+  ["Locrio",[0,1,3,5,6,8,10]],
  ],
- 'Menor mel\u00f3dica':[
-  ['Menor mel\u00f3dica',[0,2,3,5,7,9,11]],['D\u00f3rico \u266D2',[0,1,3,5,7,9,10]],
-  ['Lidio aumentado',[0,2,4,6,8,9,11]],['Lidio dominante',[0,2,4,6,7,9,10]],
-  ['Mixolidio \u266D6',[0,2,4,5,7,8,10]],['Locrio \u266E2',[0,2,3,5,6,8,10]],
-  ['Alterado',[0,1,3,4,6,8,10]],
+ "Menor melódica":[
+  ["Menor melódica",[0,2,3,5,7,9,11]],
+  ["Dórico ♭2",[0,1,3,5,7,9,10]],
+  ["Lidio aumentado",[0,2,4,6,8,9,11]],
+  ["Lidio dominante",[0,2,4,6,7,9,10]],
+  ["Mixolidio ♭6",[0,2,4,5,7,8,10]],
+  ["Locrio ♮2",[0,2,3,5,6,8,10]],
+  ["Alterado",[0,1,3,4,6,8,10]],
  ],
- 'Menor arm\u00f3nica':[
-  ['Menor arm\u00f3nica',[0,2,3,5,7,8,11]],['Locrio \u266E6',[0,1,3,5,6,9,10]],
-  ['J\u00f3nico \u266F5',[0,2,4,5,8,9,11]],['D\u00f3rico \u266F4',[0,2,3,6,7,9,10]],
-  ['Frigio dominante',[0,1,4,5,7,8,10]],['Lidio \u266F2',[0,3,4,6,7,9,11]],
-  ['Superlocrio \u266D\u266D7',[0,1,3,4,6,8,9]],
+ "Menor armónica":[
+  ["Menor armónica",[0,2,3,5,7,8,11]],
+  ["Locrio ♮6",[0,1,3,5,6,9,10]],
+  ["Jónico ♯5",[0,2,4,5,8,9,11]],
+  ["Dórico ♯4",[0,2,3,6,7,9,10]],
+  ["Frigio dominante",[0,1,4,5,7,8,10]],
+  ["Lidio ♯2",[0,3,4,6,7,9,11]],
+  ["Superlocrio ♭♭7",[0,1,3,4,6,8,9]],
  ],
 };
-const FAM_KEYS=Object.keys(FAMILIES);
 const CHAR={
- 'D\u00f3rico':'la 6\u00aa mayor \u2014 menor con luz','Frigio':'la \u266D2 \u2014 oscuro, espa\u00f1ol',
- 'Lidio':'la \u266F4 \u2014 flotante, et\u00e9reo','Mixolidio':'la \u266D7 \u2014 mayor con tierra',
- 'E\u00f3lico (menor)':'menor natural','Locrio':'la \u266D5 \u2014 inestable',
- 'Mixolidio \u266D6':'mayor c\u00e1lido con sombra \u2014 el atardecer',
- 'Lidio dominante':'\u266F4 + \u266D7 \u2014 brillante y terroso',
- 'Frigio dominante':'3\u00aa mayor sobre base oscura \u2014 flamenco',
- 'Lidio aumentado':'\u266F4 + \u266F5 \u2014 suspendido','Alterado':'todo tensionado \u2014 dominante alterado',
- 'Locrio \u266E2':'semidisminuido \u2014 jazz menor','D\u00f3rico \u266D2':'menor con \u266D2 \u2014 tenso y suave',
- 'Menor mel\u00f3dica':'menor con 6\u00aa y 7\u00aa mayores','Menor arm\u00f3nica':'la 7\u00aa mayor \u2014 dram\u00e1tica',
+ "Dórico":"la 6ª mayor — menor con luz",
+ "Frigio":"la ♭2 — oscuro, español",
+ "Lidio":"la ♯4 — flotante, etéreo",
+ "Mixolidio":"la ♭7 — mayor con tierra",
+ "Eólico (menor)":"menor natural",
+ "Locrio":"la ♭5 — inestable",
+ "Menor melódica":"menor con 6ª y 7ª mayores",
+ "Dórico ♭2":"menor con ♭2 — tenso y suave",
+ "Lidio aumentado":"♯4 + ♯5 — suspendido",
+ "Lidio dominante":"♯4 + ♭7 — brillante y terroso",
+ "Mixolidio ♭6":"mayor cálido con sombra — el atardecer",
+ "Locrio ♮2":"semidisminuido — jazz menor",
+ "Alterado":"todo tensionado — dominante alterado",
+ "Menor armónica":"la 7ª mayor — dramática",
+ "Frigio dominante":"3ª mayor sobre base oscura — flamenco",
 };
+const INFO={
+ "Jónico (mayor)":{"luz":2,"clave":null,"muestra":[{"nombre":"I–IV–V–I","grados":[1,4,5,1],"fuente":"B/043"},{"nombre":"I–V–vi–IV (los 4 del pop)","grados":[1,5,6,4],"fuente":"B/065"}],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"es el modo mayor; como modo se trata \"sin funciones\""},{"quien":"Antian","fuente":"AT/1.2","dice":"alegría, grandeza — estribillos, pop"},{"quien":"Antian","fuente":"AT/1.2","dice":"recurso comercial: versos en el menor (eólico) y estribillo en su mayor relativo (jónico) — mismas notas, cambia dónde se apoya"}],"ejemplos":[],"cuidado":[]},
+ "Dórico":{"luz":4,"clave":{"grado":6,"nombre":"6ª mayor (sobre base menor)"},"muestra":[{"nombre":"i–IV","grados":[1,4],"fuente":"AV/075"},{"nombre":"i7–IV7 (funky)","grados":[1,4],"septimas":true,"fuente":"AV/075"}],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"menor con un punto de luz; el más usado después de mayor y menor"},{"quien":"Jaime","fuente":"AV/075-079","dice":"tónica menor + IV mayor = reposo triste que se eleva. Tres familias: funky (i7–IV7), banda sonora épica (en agudos), rock psicodélico (i–IV en bucle). El IV7 hace de dominante"},{"quien":"Jaime","fuente":"AV/077","dice":"truco de los tráileres: el tema más lento, con menos notas, en agudos y con reverb, en dórico"},{"quien":"Hertz","fuente":"HZ/17.1","dice":"La dórico = La menor con Fa#; usa los mismos acordes que Mi menor (Lam–Do–Sol–Re). Lo que decide el modo es la MELODÍA: si gira en La es La dórico, si gira en Mi es Mi menor"},{"quien":"Antian","fuente":"AT/1.2","dice":"melancolía suave, entre alegre y triste: \"tristón, pero no tanto\""}],"ejemplos":["Uptown Funk","Oye cómo va","Mad World","tema de la Fuerza","El bueno, el feo y el malo","Pink Floyd (i–IV en bucle)"],"cuidado":[]},
+ "Frigio":{"luz":6,"clave":{"grado":2,"nombre":"♭2"},"muestra":[{"nombre":"i–♭II","grados":[1,2],"fuente":"AV/092"},{"nombre":"i–♭II–i–♭vii","grados":[1,2,1,7],"fuente":"AV/092"}],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"más oscuro que el menor"},{"quien":"Jaime","fuente":"AV/092","dice":"la 2ª menor en el grave = miedo: heavy metal, fanfarrias de la antigua Roma. El ♭vii = \"depresión absoluta\""},{"quien":"Hertz","fuente":"HZ/DEST","dice":"un Lab sobre Sol (medio tono arriba de la tónica) = color frigio, oscuro; lo mete como sorpresa en la 2ª vuelta del motivo"},{"quien":"Antian","fuente":"AT/1.2","dice":"oscuro, malvado, gótico, \"gangster\" — trap oscuro"}],"ejemplos":["Black Sabbath","Wherever I May Roam","London Calling","Quiet (Matilda)"],"cuidado":["El flamenco en realidad usa el Frigio dominante (3ª mayor), no este (AV/092)."]},
+ "Lidio":{"luz":1,"clave":{"grado":4,"nombre":"♯4"},"muestra":[{"nombre":"I–II","grados":[1,2],"fuente":"AV/088"}],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"más luminoso que el mayor: magia, paz, hype"},{"quien":"Jaime","fuente":"AV/088-090","dice":"maravilla, victoria luminosa. Va con mucha reverb (\"catedral\") y glissandos tipo arpa"},{"quien":"Antian","fuente":"AT/1.2","dice":"sueño, etéreo, mágico, \"algo lindo va a pasar\" — cine, series, juegos. Con arpa en arpegio suena a \"entrando a un sueño\" (hipótesis para probar)"}],"ejemplos":["Regreso al futuro","Jurassic Park (inicio)","For Frodo (ESDLA)","tema de Éowyn"],"cuidado":["Tónica–3ª–♯4–5ª seguidas = el inicio de Los Simpson (AV/088)."]},
+ "Mixolidio":{"luz":3,"clave":{"grado":7,"nombre":"♭7"},"muestra":[{"nombre":"I–♭VII–IV","grados":[1,7,4],"fuente":"AV/084"},{"nombre":"I–♭VII–IV–I","grados":[1,7,4,1],"fuente":"AV/084"}],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"luminoso \"pero no tanto\"; rock"},{"quien":"Jaime","fuente":"AV/051-056","dice":"el ♭VII = dominante suave, \"vintage, color sepia\": la sensible bajada ya no pincha"},{"quien":"Antian","fuente":"AT/1.2","dice":"alegre, despreocupado, juvenil, veraniego — country, blues, rock"}],"ejemplos":["Back in Black","Sweet Home Alabama","Sympathy for the Devil","Born This Way"],"cuidado":["La tónica con su ♭7 es un acorde de dominante (C7): si lo llevas al IV te saca del modo. El ♭VII en medio lo evita (AV/084)."]},
+ "Eólico (menor)":{"luz":5,"clave":null,"muestra":[{"nombre":"i–♭VII","grados":[1,7],"fuente":"AV/070"},{"nombre":"i–♭VI–♭III–♭VII (los 4 del reggaetón)","grados":[1,6,3,7],"fuente":"PA/181"},{"nombre":"i–♭VII–♭VI","grados":[1,7,6],"fuente":"PA/079"}],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"menor natural SIN V mayor: lluvioso, triste"},{"quien":"Jaime","fuente":"PA/181","dice":"sin sensible: la progresión gira sin cerrar (loop urbano)"},{"quien":"Jaime","fuente":"AV/025","dice":"en menor, la dominante elige con cuánta fuerza vuelves a casa: V mayor = fuego (ya es menor armónica) · v menor = lúgubre · ♭VII = suave, \"una preguntilla\" (sonido modal)"},{"quien":"Hertz","fuente":"HZ/17.2","dice":"escala expandida: los grados iv y v se pueden volver MAYORES sin salir de la escala (8 acordes); se usan las dos versiones en la misma progresión y la melodía no cambia. \"Sonoridad de modos sin la complicación\""},{"quien":"Hertz","fuente":"HZ/DEST","dice":"melodías oscuras: moverse por los dos semitonos de la escala (2ª–♭3 y 5ª–♭6). Se puede estar en la tonalidad sin tocar nunca el acorde de tónica"},{"quien":"Antian","fuente":"AT/1.2","dice":"tristeza, también oscuro — todos los géneros urbanos"}],"ejemplos":["Despacito (4 del reggaetón)","Somebody That I Used To Know (i–♭VII)"],"cuidado":[]},
+ "Locrio":{"luz":7,"clave":{"grado":5,"nombre":"♭5"},"muestra":[],"cursos":[{"quien":"Jaime","fuente":"AV/070","dice":"\"la casa en llamas\": casi inusable; solo con nota pedal en la tónica"},{"quien":"Antian","fuente":"AT/1.2","dice":"inestable, tétrico — casi no se usa; nunca en urbano"}],"ejemplos":[],"cuidado":[]},
+ "Menor melódica":{"luz":0,"clave":null,"muestra":[],"cursos":[{"quien":"Jaime","fuente":"AV/031","dice":"es la menor armónica con la 6ª también subida, para que la melodía no suene \"egipcia\""},{"quien":"Jaime","fuente":"AV/029-031","dice":"tercer paso de la escala de luz menor → mayor: natural → armónica → melódica → mayor. Las tres menores comparten el acorde de tónica: se puede cambiar de una a otra sin perder la casa"},{"quien":"Jaime","fuente":"AV/048","dice":"su acorde de tónica con 7ª, m(maj7), suena a noir, detective (La Pantera Rosa)"}],"ejemplos":[],"cuidado":[]},
+ "Dórico ♭2":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Lidio aumentado":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Lidio dominante":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Mixolidio ♭6":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Locrio ♮2":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Alterado":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Menor armónica":{"luz":0,"clave":{"grado":7,"nombre":"7ª mayor (la sensible)"},"muestra":[{"nombre":"i–iv–V–i","grados":[1,4,5,1],"fuente":"HZ/17.3"},{"nombre":"i–♭VI–iv–V (los 50 en menor)","grados":[1,6,4,5],"fuente":"PA/166"}],"cursos":[{"quien":"Jaime","fuente":"AV/030","dice":"la menor natural no tiene sensible: se sube la 7ª para tener una pinza propia (el V mayor con 7ª) que cierre a la tónica. \"El modo menor es un Frankenstein\""},{"quien":"Jaime","fuente":"AV/045","dice":"el salto de tono y medio entre la ♭6 y la 7ª = lo \"egipcio\""},{"quien":"Jaime","fuente":"AV/025","dice":"el V mayor = volver a casa con fuego (Para Elisa)"},{"quien":"Hertz","fuente":"HZ/17.3","dice":"\"el toque KSHMR\": otra parte del mundo. El V mayor es obligado. Pasar el MÁXIMO de veces por la nota alterada, en melodía y acordes. Costo: 2-3 acordes disminuidos"},{"quien":"Antian","fuente":"AT/1.2","dice":"sonido \"árabe\" o \"egipcio\""}],"ejemplos":["Para Elisa","Havana (i–VI–V–V)"],"cuidado":[]},
+ "Locrio ♮6":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Jónico ♯5":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Dórico ♯4":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Frigio dominante":{"luz":0,"clave":null,"muestra":[{"nombre":"I–♭II","grados":[1,2],"fuente":"lectura de Claude (por analogía con el frigio)"}],"cursos":[{"quien":"Jaime","fuente":"AV/092","dice":"es el que de verdad usa el flamenco (con variantes)"},{"quien":"Hertz","fuente":"HZ/17.5","dice":"la llama escala \"árabe\" (\"Egipto\"): 3 sitios para melodías oscuras. Casi no da acordes → \"falso acorde\" = la fundamental doblada en octava. En trap: 4 notas + un 808 simple. En Live, sin Fold"}],"ejemplos":[],"cuidado":["Que la \"árabe\" de Hertz es este modo es lectura de Claude: su fórmula (S-3S-S-T-S-T-T) da exactamente estas notas."]},
+ "Lidio ♯2":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+ "Superlocrio ♭♭7":{"luz":0,"clave":null,"muestra":[],"cursos":[],"ejemplos":[],"cuidado":[]},
+};
+/* DATOS:FIN */
+/* capa Modo: orden del dimmer de luz (INFO viene del bloque de datos) */
+const LUZ_ORDEN=Object.keys(INFO).filter(k=>INFO[k].luz).sort((a,b)=>INFO[a].luz-INFO[b].luz);
+const LUZ_ABR={'Jónico (mayor)':'JÓN','Dórico':'DÓR','Frigio':'FRI','Lidio':'LID','Mixolidio':'MIX','Eólico (menor)':'EÓL','Locrio':'LOC'};
+const FAM_KEYS=Object.keys(FAMILIES);
 function spellScale(root,intervals){
  const ri=LETTERS.indexOf(root.letter);
  return intervals.map((iv,deg)=>{
@@ -299,7 +366,7 @@ function casaReadout(k){
 
 /* ---- MODO / TEJIDO: note-wedge wheel ---- */
 function ringGuides(svg){[R_OUT,R_MID,R_IN,R_DIM].forEach(r=>svg.appendChild(el('circle',{cx:CX,cy:CY,r:r,fill:'none',stroke:'#121212','stroke-width':1})));}
-function drawScale(spelled,rootPc){
+function drawScale(spelled,rootPc,clavePc){
  const svg=clearWheel(); glowDefs(svg); ticks(svg); ringGuides(svg);
  const set=new Set(spelled.map(n=>n.pc)); const nm={}; spelled.forEach(n=>nm[n.pc]=n.name);
  let rootName='';
@@ -309,6 +376,7 @@ function drawScale(spelled,rootPc){
   if(lit){fill='#2a0d47';stroke='#9b30ff';tcol='#e8d4ff';glow='gP';}
   else {fill='#080808';stroke='#161616';tcol='#333';}
   if(tonic&&lit){fill='#52103a';stroke='#ff3cac';tcol='#fff';glow='gPk';rootName=nm[pc];}
+  else if(lit&&pc===clavePc){fill='#3d3200';stroke='#f5c500';tcol='#fff3b0';glow='gY';}
   const p=el('path',{d:sectorPath(R_DIM,R_OUT,center,30),fill:fill,stroke:stroke,'stroke-width':lit?1.5:1});
   if(glow)p.setAttribute('filter','url(#'+glow+')');
   svg.appendChild(p);
@@ -338,7 +406,7 @@ function drawTejido(a,b){
 /* ---------------- state + UI ---------------- */
 const state2={
  tab:'casa', casa:null,
- modo:{root:'G',fam:FAM_KEYS[0],mode:0,sevenths:false},
+ modo:{root:'G',fam:FAM_KEYS[0],mode:0,sevenths:false,cursos:false},
  tej:{a:{root:'G',fam:'Menor mel\u00f3dica',mode:4},b:null,keepTonic:false,adv:false},
 };
 function rootObj(name){return ROOTS.find(r=>r.name===name);}
@@ -364,16 +432,43 @@ function render(){
    <label class="toggle"><input type="checkbox" id="m-sev"${s.sevenths?' checked':''}><span class="track"><span class="knob"></span></span>séptimas</label>
    <button class="btn-tejer" id="m-tejer">tejer desde acá →</button>`;
   const root=rootObj(s.root),iv=FAMILIES[s.fam][s.mode][1],modeName=FAMILIES[s.fam][s.mode][0],notes=spellScale(root,iv);
-  drawScale(notes,root.pc);
-  leg.innerHTML=`<span><span class="swatch" style="background:var(--purple)"></span>notas del modo</span><span><span class="swatch" style="background:var(--accent)"></span>tónica</span>`;
+  const info=INFO[modeName]||{},claveN=info.clave?notes[info.clave.grado-1]:null;
+  drawScale(notes,root.pc,claveN?claveN.pc:null);
+  leg.innerHTML=`<span><span class="swatch" style="background:var(--purple)"></span>notas del modo</span><span><span class="swatch" style="background:var(--accent)"></span>tónica</span>${claveN?'<span><span class="swatch" style="background:var(--yellow)"></span>nota clave</span>':''}`;
+  /* luz: el dimmer de 7 pasos sobre la misma tónica */
+  let luzHTML='';
+  if(info.luz){
+   const k=info.luz-1,dia=FAMILIES[FAM_KEYS[0]];
+   const corto=nm=>nm.split(' (')[0];
+   const vecino=(j,txt)=>{ if(j<0||j>6)return '<button class="luzbtn off"></button>';
+    const nm=LUZ_ORDEN[j],mi=dia.findIndex(m=>m[0]===nm),n2=spellScale(root,dia[mi][1]),g=n2.findIndex((x,i)=>x.pc!==notes[i].pc);
+    return `<button class="luzbtn" data-mode="${mi}">${txt} · ${corto(nm)}<small>${notes[g].name} → <b>${n2[g].name}</b></small></button>`;};
+   luzHTML=`<div class="rlabel">Luz · puesto ${info.luz} de 7</div>
+    <div class="luzbar">${LUZ_ORDEN.map((nm,j)=>{const mi=dia.findIndex(m=>m[0]===nm),a=1-j/6;
+      return `<button class="luzseg${j===k?' on':''}" data-mode="${mi}" title="${nm}" style="background:rgba(245,197,0,${(0.04+a*0.34).toFixed(2)})">${LUZ_ABR[nm]}</button>`;}).join('')}</div>
+    <div class="luzends"><span>más luz</span><span>más oscuro</span></div>
+    <div class="luznav">${vecino(k-1,'▲ más luz')}${vecino(k+1,'▼ más oscuro')}</div>`;
+  }
+  const progHTML=(info.muestra&&info.muestra.length)?`<div class="rlabel">Lo muestra</div><div class="progs">${info.muestra.map(p=>
+    `<div class="prog"><span class="pa">${p.grados.map(g=>notes[g-1].name+(p.septimas?sevQ(notes,g-1):triadQ(notes,g-1))).join(' – ')}</span><span class="pn">${p.nombre}</span></div>`).join('')}</div>`:'';
+  const nC=(info.cursos||[]).length;
+  const cursosHTML=nC?`<details class="adv" id="m-cursos"${s.cursos?' open':''}><summary>lo que dicen los cursos (${nC})</summary>
+    ${info.cursos.map(c=>`<div class="curso"><b>${c.quien}</b><span class="src">${c.fuente}</span>${c.dice}</div>`).join('')}
+    ${info.ejemplos&&info.ejemplos.length?`<div class="curso ej"><b>Se oye en</b> · ${info.ejemplos.join(' · ')}</div>`:''}
+    ${(info.cuidado||[]).map(c=>`<div class="curso ojo">⚠ ${c}</div>`).join('')}</details>`
+   :`<div class="hint">Ningún curso habla de este modo todavía.</div>`;
   const chordHTML=notes.map((n,i)=>{const tq=triadQ(notes,i),q=s.sevenths?sevQ(notes,i):tq;return `<div class="chord ${qualClass(tq)}"><div class="deg">${romanFor(notes,i)}</div><div class="nm">${n.name}${q}</div></div>`;}).join('');
   const char=CHAR[modeName];
   document.getElementById('readout').innerHTML=`
    <div class="rlabel">${root.name} · ${modeName}</div>
-   <div class="notes">${notes.map(n=>`<span class="note-pill${n.pc===root.pc?' tonic':''}">${n.name}</span>`).join('')}</div>
-   ${char?`<div class="charnote">color · <b>${char}</b></div>`:''}
+   <div class="notes">${notes.map(n=>`<span class="note-pill${n.pc===root.pc?' tonic':(claveN&&n.pc===claveN.pc?' clave':'')}">${n.name}</span>`).join('')}</div>
+   ${char?`<div class="charnote">color · <b>${char}</b></div>`:`<div class="charnote vacio">color · falta tu palabra</div>`}
+   ${claveN?`<div class="charnote">nota clave · <b class="y">${claveN.name}</b> — ${info.clave.nombre}</div>`:''}
+   ${luzHTML}
+   ${progHTML}
    <div class="rlabel">Acordes por grado · ${s.sevenths?'séptimas':'tríadas'}</div>
-   <div class="chords">${chordHTML}</div>`;
+   <div class="chords">${chordHTML}</div>
+   ${cursosHTML}`;
   bindModo(); return;
  }
  /* TEJIDO — mapa de destinos */
@@ -443,6 +538,8 @@ function bindModo(){const s=state2.modo;
  document.getElementById('m-fam').onchange=e=>{s.fam=e.target.value;s.mode=0;render();};
  document.getElementById('m-mode').onchange=e=>{s.mode=+e.target.value;render();};
  document.getElementById('m-sev').onchange=e=>{s.sevenths=e.target.checked;render();};
+ document.querySelectorAll('.luzseg,.luzbtn[data-mode]').forEach(b=>b.onclick=()=>{s.fam=FAM_KEYS[0];s.mode=+b.dataset.mode;render();});
+ const mc=document.getElementById('m-cursos'); if(mc)mc.ontoggle=()=>{s.cursos=mc.open;};
  document.getElementById('m-tejer').onclick=()=>{state2.tej.a={root:s.root,fam:s.fam,mode:s.mode};state2.tej.b=null;selectTab('tejido');};}
 function bindTejido(){const t=state2.tej;
  document.getElementById('a-root').onchange=e=>{t.a.root=e.target.value;t.b=null;render();};
